@@ -1,0 +1,45 @@
+@startuml
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam Linetype ortho
+skinparam packageStyle rectangle
+skinparam nodesep 50
+skinparam ranksep 120
+
+skinparam object {
+    BackgroundColor<<Entity Root>> #D5E8D4
+    BackgroundColor<<Entity>>      #EAF4E1
+    BackgroundColor<<Value Object>> #DAE8FC
+    BorderColor #444444
+    FontSize 13
+}
+skinparam package {
+    BorderColor #888888
+    FontSize 11
+    FontStyle bold
+}
+
+
+package AircraftAggregate {
+        object Aircraft <<Entity Root>>{
+            companyId
+            aircraftModelId
+            engineModelId
+        }
+        object AircraftRegistration <<Value Object>>
+        object RegistrationCountry <<Value Object>>
+        object CabinConfiguration <<Value Object>>
+        object OperationalStatus <<Value Object>>
+        note right of OperationalStatus
+            active | decommissioned
+            Decommissioned aircraft cannot be
+            assigned to new flights (US071).
+        end note
+        object NumberOfFlightCrew <<Value Object>>
+        Aircraft "1" *-- "1" AircraftRegistration
+        Aircraft "1" *-- "1" RegistrationCountry
+        Aircraft "1" *-- "1" CabinConfiguration
+        Aircraft "1" *-- "1" OperationalStatus
+        Aircraft "1" *-- "1" NumberOfFlightCrew
+}
+@enduml

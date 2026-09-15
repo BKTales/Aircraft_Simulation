@@ -1,0 +1,163 @@
+@startuml Airport_SD
+title Register Airport - US052
+
+skinparam NoteBackgroundColor #FFFACD
+skinparam NoteBorderColor #DAA520
+
+actor BackOfficeOperator as User
+participant "AirportUI" as UI
+participant "AirportController" as Controller
+participant "AirportService" as AirportService
+database "AirControlAreaRepository" as DBAirControl
+database "AirportRepository" as DBAirport
+
+note over User: BackOfficeOperator is authenticated\nand has an active session
+
+User -> UI: request airport registration form
+activate UI
+UI --> User: show form
+deactivate UI
+
+User -> UI: submit(icaoCode, iataCode, name,\ncountry, town, lat, lon, elevation, airControlAreaId)
+activate UI
+
+note left of UI
+  airportForm:
+  - icaoCode, iataCode
+  - name, country, town
+  - latitude, longitude, elevation
+  - airControlAreaId
+end note
+
+UI -> Controller: createAirport(airportForm)
+activate Controller
+
+Controller -> AirportService: createAirport(airportForm)
+activate AirportService
+
+AirportService -> DBAirControl: findById(airControlAreaId)
+activate DBAirControl
+DBAirControl --> AirportService: Optional<AirControlArea>
+deactivate DBAirControl
+
+alt AirControlArea not found
+    AirportService --> Controller: AirControlAreaNotFoundException
+    Controller --> UI: propagate error
+    UI --> User: display error message
+
+else AirControlArea found
+    |||
+    create participant "<<Value Object>>\nICAOCode" as ICAO
+    AirportService -> ICAO: create(icaoCode)
+    activate ICAO
+    note right of ICAO
+      Invariant enforced at construction:
+      format = 4 uppercase letters.
+      Throws if format is invalid.
+    end note
+    ICAO --> AirportService: icaoCode
+    deactivate ICAO
+    |||
+
+    create participant "<<Value Object>>\nIATACode" as IATA
+    AirportService -> IATA: create(iataCode)
+    activate IATA
+    note right of IATA
+      Invariant enforced at construction:
+      format = 3 uppercase letters.
+      Throws if format is invalid.
+    end note
+    IATA --> AirportService: iataCode
+    deactivate IATA
+    |||
+
+    |||
+    create participant "<<Value Object>>\nAirportName" as Name
+    AirportService -> Name: create(name)
+    activate Name
+    note right of Name
+    Invariant enforced at construction:
+    end note
+    Name --> AirportService: airportName
+    deactivate Name
+    |||
+
+    |||
+    create participant "<<Value Object>>\nAirportTown" as Town
+    AirportService -> Town: create(town)
+    activate Town
+    note right of Town
+    Invariant enforced at construction:
+    The town must exist, or throw
+    end note
+    Town --> AirportService: airportTown
+    deactivate Town
+    |||
+
+    |||
+    create participant "<<Value Object>>\nAirportCountry" as Country
+    AirportService -> Country: create(country)
+    activate Country
+    note right of Country
+    Invariant enforced at construction:
+    The country must exist, or throw
+    end note
+    Country --> AirportService: airportCountry
+    deactivate Country
+    |||
+
+    
+
+    create participant "<<Value Object>>\nGeoCoordinates" as Coords
+    AirportService -> Coords: create(latitude, longitude, elevation)
+    activate Coords
+    note right of Coords
+      Invariant enforced at construction:
+      lat ∈ [-90, 90], lon ∈ [-180, 180].
+      Throws if coordinates are invalid.
+    end note
+    Coords --> AirportService: coordinates
+    deactivate Coords
+    |||
+
+    AirportService -> DBAirport: findByIcaoCode(icaoCode)
+    activate DBAirport
+    DBAirport --> AirportService: Optional<Airport>
+    deactivate DBAirport
+
+    alt ICAO already exists
+        AirportService --> Controller: DuplicateICAOCodeException
+        Controller --> UI: propagate error
+        UI --> User: display error message
+
+    else ICAO is unique
+        |||
+        create participant "<<Aggregate Root>>\nAirport" as Airport
+        AirportService -> Airport: create(icaoCode, iataCode,\nname, coordinates, airControlAreaId)
+        activate Airport
+        note right of Airport
+          References to AirControlArea
+          stored by ID only — no direct
+          object reference across
+          Aggregate boundaries.
+        end note
+        Airport --> AirportService: airport
+        deactivate Airport
+        |||
+
+        AirportService -> DBAirport: save(airport)
+        activate DBAirport
+        DBAirport --> AirportService: savedAirport
+        deactivate DBAirport
+
+        AirportService --> Controller: success(savedAirport)
+        Controller --> UI: propagate success
+        UI --> User: confirm "Airport [ICAO] registered successfully"
+    end
+end
+
+deactivate AirportService
+deactivate Controller
+deactivate UI
+
+@enduml

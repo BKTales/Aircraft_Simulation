@@ -1,0 +1,126 @@
+================================================================================
+                    AISafe FLIGHT SIMULATION REPORT
+================================================================================
+ Generated at       : 2026-06-14 14:59:16
+ Tick interval (s)  : 1
+================================================================================
+
+FLIGHT EXECUTION RECORDS
+--------------------------------------------------------------------------------
+
+[Flight 000]  Flight ID 345678
+  Route              : STN -> FCO
+  Execution status   : OUT OF FUEL
+  Simulation step    : 139
+  Departure          : 01/01 00:00:00 UTC
+  Last update at     : 01/01 00:02:19 UTC  (00h 02m 19s)
+  Planned arrival    : 01/01 00:00:00 UTC  (00h 00m 00s)
+  Position           : lat +51.71580 deg, lon +0.50521 deg, alt 3391.31 m
+  Velocity (scalar)  : 393.88 kt (202.63 m/s ground speed)
+  Fuel total         : 145751.83 kg
+  Fuel used          : 145751.83 kg
+  Fuel remaining     : 0.00 kg
+--------------------------------------------------------------------------------
+
+[Flight 001]  Flight ID 100002
+  Route              : OPO -> MAD
+  Execution status   : COLLISION
+  Simulation step    : 1376
+  Departure          : 01/01 00:00:00 UTC
+  Last update at     : 01/01 00:22:56 UTC  (00h 22m 56s)
+  Planned arrival    : 01/01 00:22:56 UTC  (00h 22m 56s)
+  Position           : lat +41.27644 deg, lon -6.21031 deg, alt 9247.95 m
+  Velocity (scalar)  : 423.47 kt (217.85 m/s ground speed)
+  Fuel total         : 145751.83 kg
+  Fuel used          : 131520.64 kg
+  Fuel remaining     : 14231.19 kg
+--------------------------------------------------------------------------------
+
+[Flight 002]  Flight ID 100001
+  Route              : MAD -> OPO
+  Execution status   : COLLISION
+  Simulation step    : 1376
+  Departure          : 01/01 00:00:00 UTC
+  Last update at     : 01/01 00:22:56 UTC  (00h 22m 56s)
+  Planned arrival    : 01/01 00:22:56 UTC  (00h 22m 56s)
+  Position           : lat +41.27645 deg, lon -6.15444 deg, alt 9247.82 m
+  Velocity (scalar)  : 423.47 kt (217.85 m/s ground speed)
+  Fuel total         : 145751.83 kg
+  Fuel used          : 131424.53 kg
+  Fuel remaining     : 14327.30 kg
+--------------------------------------------------------------------------------
+
+[Flight 003]  Flight ID 888001
+  Route              : LIS -> BCN
+  Execution status   : ABORTED
+  Simulation step    : 1376
+  Departure          : 01/01 00:00:00 UTC
+  Last update at     : 01/01 00:22:56 UTC  (00h 22m 56s)
+  Planned arrival    : 01/01 00:00:00 UTC  (00h 00m 00s)
+  Position           : lat +39.80000 deg, lon -7.20000 deg, alt 0.00 m
+  Velocity (scalar)  : 350.17 kt (180.14 m/s ground speed)
+  Fuel total         : 320000.00 kg
+  Fuel used          : 27596.69 kg
+  Fuel remaining     : 292403.31 kg
+--------------------------------------------------------------------------------
+
+[Flight 004]  Flight ID 0
+  Route              : LIS-W -> EAST-ES
+  Execution status   : ABORTED
+  Simulation step    : 0
+  Departure          : 02/06 10:00:00 UTC
+  Last update at     : 02/06 10:00:00 UTC  (00h 00m 00s)
+  Planned arrival    : 02/06 12:00:00 UTC  (02h 00m 00s)
+  Position           : lat +0.00000 deg, lon +0.00000 deg, alt 0.00 m
+  Velocity (scalar)  : 0.00 kt (0.00 m/s ground speed)
+  Fuel total         : 320000.00 kg
+  Fuel used          : 320000.00 kg
+  Fuel remaining     : 0.00 kg
+--------------------------------------------------------------------------------
+
+[Flight 005]  Flight ID 0
+  Route              : MAD -> EAST
+  Execution status   : ABORTED
+  Simulation step    : 0
+  Departure          : 02/06 10:00:00 UTC
+  Last update at     : 02/06 10:00:00 UTC  (00h 00m 00s)
+  Planned arrival    : 02/06 11:00:00 UTC  (01h 00m 00s)
+  Position           : lat +0.00000 deg, lon +0.00000 deg, alt 0.00 m
+  Velocity (scalar)  : 0.00 kt (0.00 m/s ground speed)
+  Fuel total         : 320000.00 kg
+  Fuel used          : 320000.00 kg
+  Fuel remaining     : 0.00 kg
+--------------------------------------------------------------------------------
+
+================================================================================
+ SAFETY VIOLATION EVENTS
+================================================================================
+
+[Event 000]  COLLISION
+  Simulation step    : 1376  (elapsed 1376 s)
+  Horizontal sep.    : 4668.79 m
+  Vertical sep.      : 0.13 m
+  Flight A (ID 100002)
+    Position         : lat +41.27644, lon -6.21031, alt 9247.95 m
+    Velocity         : 423.47 kt (217.85 m/s)
+  Flight B (ID 100001)
+    Position         : lat +41.27645, lon -6.15444, alt 9247.82 m
+    Velocity         : 423.47 kt (217.85 m/s)
+--------------------------------------------------------------------------------
+
+================================================================================
+ VALIDATION SUMMARY
+================================================================================
+ Flights reported             : 6
+ Flights completed (SUCCESS)  : 0
+ Execution failures           : 6
+ Collision events             : 1
+ Flights with COLLISION status: 2 (100002;100001)
+ Safety violation events      : 1
+ Failure counter (simulator)  : 3  (threshold 3)
+--------------------------------------------------------------------------------
+ FINAL VALIDATION RESULT      : FAIL
+  -> COLLISION: flights 100002 and 100001 (step 1376, sep 4668.79 m).
+  -> Failure counter reached 3 (>= 3).
+================================================================================
+

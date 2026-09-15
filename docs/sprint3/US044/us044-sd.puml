@@ -1,0 +1,78 @@
+@startuml us044-sd
+
+autonumber
+
+actor "Weather Person" as WP
+
+participant "RemoteClientApp" as CLIENT <<TCP Client>>
+participant "vsgate DEI" as GATE
+participant "ClientHandler" as HANDLER <<Server>>
+participant "WeatherCommandHandler" as WH <<Server>>
+participant "RegisterWeatherDataController" as REG <<Controller>>
+participant "BulkWeatherDataController" as BULK <<Controller>>
+database "PostgreSQL" as DB
+
+WP -> CLIENT : start client (profile 3)
+CLIENT -> GATE : TCP connect
+GATE -> HANDLER : forward to RcompTcpServer
+
+CLIENT -> HANDLER : LOGIN (opcode 10)\nweather;Password1;WEATHER
+activate HANDLER
+HANDLER -> HANDLER : authenticate(..., WEATHER_PERSON)
+HANDLER --> CLIENT : SUCCESS_LOGIN (opcode 11)
+deactivate HANDLER
+
+== Register weather (US041) ==
+
+WP -> CLIENT : select register weather
+CLIENT -> HANDLER : LIST_AREAS (50)
+HANDLER -> WH : handle(50)
+activate WH
+WH -> REG : availableAreas()
+REG -> DB : load areas
+REG --> WH : Iterable<AirControlArea>
+WH --> CLIENT : OK + area lines
+deactivate WH
+
+CLIENT -> HANDLER : REGISTER_WEATHER (51)\narea;temp;hum;...
+HANDLER -> WH : handle(51, payload)
+activate WH
+WH -> REG : registerWeatherData(...)
+REG -> DB : save WeatherData
+REG --> WH : WeatherData
+WH --> CLIENT : OK|id|area|...
+deactivate WH
+
+== Bulk import (US042) ==
+
+WP -> CLIENT : select bulk import
+CLIENT -> HANDLER : BULK_IMPORT (52)\nfile.csv;base64...
+HANDLER -> WH : handle(52, payload)
+activate WH
+WH -> WH : write temp CSV
+WH -> BULK : importFromFile(path)
+BULK -> DB : save records
+BULK --> WH : List<WeatherData>
+WH --> CLIENT : Imported N weather record(s).
+deactivate WH
+
+== Consult by day (US043) ==
+
+WP -> CLIENT : select consult by day
+CLIENT -> HANDLER : CONSULT_BY_DAY (53)\nAREA-0;01-06-2026
+HANDLER -> WH : handle(53, payload)
+activate WH
+WH -> BULK : consultWeatherDataForDay(area, day)
+BULK -> DB : query weather
+BULK --> WH : List<WeatherData>
+WH --> CLIENT : OK + weather lines
+deactivate WH
+
+== Logout ==
+
+WP -> CLIENT : logout
+CLIENT -> HANDLER : LOGOUT (opcode 12)
+HANDLER -> HANDLER : clearSession()
+HANDLER --> CLIENT : SUCCESS_LOGOUT (opcode 13)
+
+@enduml

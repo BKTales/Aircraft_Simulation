@@ -1,0 +1,93 @@
+@startuml US100_SimulateFlightsInArea
+
+autonumber
+
+actor "Flight Control Operator" as FCO
+
+participant "SimulateFlightsInAreaUI" as UI <<UI>>
+participant "SimulateFlightsInAreaController" as CTRL <<Controller>>
+participant "FlightSimulationService" as SVC <<Service>>
+participant "FlightEligibilityService" as ELIG <<Service>>
+participant "RouteAreaCrossingDetector" as DET <<Infrastructure>>
+participant "FlightPlanAreaClipper" as CLIP <<Service>>
+database "AirControlAreaRepository" as AREPO <<Repository>>
+database "FlightRepository" as FREPO <<Repository>>
+participant "FlightPlanJsonExporter" as EXP
+participant "flight_simulator" as SIM
+
+FCO -> UI : input area, time range
+activate UI
+
+UI -> CTRL : previewEligibleFlights(...)
+activate CTRL
+CTRL -> SVC : listEligibleForArea(...)
+activate SVC
+SVC -> AREPO : find area boundary
+AREPO --> SVC : GeographicBoundary
+SVC -> FREPO : all flights
+FREPO --> SVC : flights
+SVC -> ELIG : filterEligible + clipModeFor
+activate ELIG
+ELIG -> DET : crossesArea / findCrossingSpan
+DET --> ELIG : AreaCrossingSpan
+ELIG --> SVC : eligible + FULL/CLIPPED
+deactivate ELIG
+SVC --> CTRL : EligibleFlightPreview list
+deactivate SVC
+CTRL --> UI : preview list
+deactivate CTRL
+
+UI --> FCO : designators [FULL|CLIPPED]
+FCO -> UI : confirm (y)
+
+UI -> CTRL : simulateFlightsInArea(...)
+activate CTRL
+CTRL -> CTRL : ensure role is Flight Control Operator
+CTRL -> SVC : simulateFlightsInArea(...)
+activate SVC
+
+SVC -> AREPO : find area
+AREPO --> SVC : AirControlArea
+
+alt area not found
+    SVC --> CTRL : failure
+    CTRL --> UI : error message
+    UI --> FCO : operation failed
+else area found
+    SVC -> ELIG : filterEligible
+    ELIG -> DET : crossing spans
+    DET --> ELIG : spans
+    ELIG --> SVC : eligible flights
+
+    alt no eligible flights
+        SVC --> CTRL : NoEligibleFlightsException
+        CTRL --> UI : error message
+        UI --> FCO : operation failed
+    else eligible flights
+        loop each eligible flight
+            alt CLIPPED crossing
+                SVC -> CLIP : clip(descriptor, span)
+                CLIP --> SVC : clipped descriptor
+                SVC -> EXP : toSimulatorJson(clipped)
+            else FULL leg
+                SVC -> EXP : toSimulatorJson(full)
+            end
+            EXP --> SVC : JSON file in temp dir
+        end
+
+        SVC -> SIM : ProcessBuilder (FS_FLIGHT_PLANS_DIR, FS_*)
+        activate SIM
+        SIM --> SVC : exit code, reports
+        deactivate SIM
+
+        SVC --> CTRL : pass/fail, report location
+        CTRL --> UI : result
+        UI --> FCO : simulation outcome
+    end
+end
+
+deactivate SVC
+deactivate CTRL
+deactivate UI
+
+@enduml

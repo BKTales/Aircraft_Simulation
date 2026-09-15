@@ -1,0 +1,157 @@
+@startuml US073_CreateRoute
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+skinparam maxMessageSize 220
+
+title US073 - Create Route
+
+actor "Air Transport Company Collaborator" as ATCC
+participant "CreateRouteUI" as UI <<UI>>
+participant "CreateRouteController" as CTRL <<Controller>>
+participant "CompanyRouteCollaboratorSession" as SESSION <<Helper>>
+participant "RouteService" as SVC <<Service>>
+database "CompanyCollaboratorUserRepository" as COLLAB_REPO <<Repository>>
+database "AirportRepository" as AIRPORT_REPO <<Repository>>
+database "RouteRepository" as ROUTE_REPO <<Repository>>
+participant "RouteName" as ROUTE_NAME <<ValueObject>>
+participant "RouteSchedule" as CHARTER_SCHEDULE <<ValueObject>>
+participant "RouteRecurringSchedule" as RECURRING_SCHEDULE <<ValueObject>>
+participant "Route" as ROUTE <<Aggregate>>
+
+ATCC -> UI : selects "Routes > Create Route (US073)"
+activate UI
+UI -> CTRL : currentCompanyContext()
+activate CTRL
+
+CTRL -> SESSION : requireAirTransportCompanyCollaborator(authz, collaborators)
+activate SESSION
+SESSION -> COLLAB_REPO : findByUsername(username)
+activate COLLAB_REPO
+COLLAB_REPO --> SESSION : collaborator
+deactivate COLLAB_REPO
+SESSION --> CTRL : collaborator (with owner company)
+deactivate SESSION
+
+CTRL --> UI : companyIATACode
+deactivate CTRL
+
+loop while route name is invalid or duplicate
+    UI --> ATCC : asks route numeric suffix (1..4 digits)\n(prefix from companyIATACode is fixed)
+    ATCC -> UI : enters numeric suffix
+
+    UI -> CTRL : validateRouteName(numericSuffix, companyIATACode)
+    activate CTRL
+    CTRL -> SVC : validateRouteName(companyIATACode + numericSuffix)
+    activate SVC
+    SVC -> ROUTE_NAME : valueOf(fullRouteName)
+    activate ROUTE_NAME
+    ROUTE_NAME --> SVC : normalized RouteName
+    deactivate ROUTE_NAME
+    SVC -> ROUTE_REPO : existsByName(routeName)
+    activate ROUTE_REPO
+    ROUTE_REPO --> SVC : boolean
+    deactivate ROUTE_REPO
+
+    alt invalid format or duplicate
+        SVC --> CTRL : RouteAlreadyExistsException / IllegalArgumentException
+        deactivate SVC
+        CTRL --> UI : show error and retry route suffix
+        deactivate CTRL
+    else route name accepted (exit loop)
+        SVC --> CTRL : accepted routeName
+        deactivate SVC
+        CTRL --> UI : accepted routeName
+        deactivate CTRL
+    end
+end
+
+UI -> CTRL : listAirports()
+activate CTRL
+CTRL -> SVC : listAirports()
+SVC -> AIRPORT_REPO : findAll()
+activate AIRPORT_REPO
+AIRPORT_REPO --> SVC : airport list
+deactivate AIRPORT_REPO
+SVC --> CTRL : airport list
+CTRL --> UI : airport list
+deactivate CTRL
+
+UI --> ATCC : shows airports for origin selection
+ATCC -> UI : selects origin
+
+UI -> UI : filter destination list\n(exclude origin from list)
+
+UI --> ATCC : shows airports for destination selection
+ATCC -> UI : selects destination
+
+UI --> ATCC : asks flight type (REGULAR or CHARTER)
+ATCC -> UI : selects flight type
+
+alt flight type is CHARTER
+    UI --> ATCC : asks scheduledDeparture and scheduledArrival
+    ATCC -> UI : enters dates
+    UI -> CTRL : createCharterRoute(routeName, origin, destination, departure, arrival)
+    activate CTRL
+    CTRL -> SVC : createCharterRoute(..., companyIATACode, departure, arrival)
+    activate SVC
+else flight type is REGULAR
+    UI --> ATCC : asks recurring days (one or more DayOfWeek)
+    ATCC -> UI : enters recurring days
+    UI -> CTRL : createRegularRoute(routeName, origin, destination, recurringDays)
+    activate CTRL
+    CTRL -> SVC : createRegularRoute(..., companyIATACode, recurringDays)
+    activate SVC
+end
+
+SVC -> AIRPORT_REPO : ofIdentity(originAirportIata)
+activate AIRPORT_REPO
+AIRPORT_REPO --> SVC : origin airport?
+deactivate AIRPORT_REPO
+
+SVC -> AIRPORT_REPO : ofIdentity(destinationAirportIata)
+activate AIRPORT_REPO
+AIRPORT_REPO --> SVC : destination airport?
+deactivate AIRPORT_REPO
+
+alt missing airport or origin == destination
+    SVC --> CTRL : throws validation exception
+else valid airports
+    alt charter branch
+        SVC -> CHARTER_SCHEDULE : new RouteSchedule(departure, arrival)
+        activate CHARTER_SCHEDULE
+        CHARTER_SCHEDULE --> SVC : schedule
+        deactivate CHARTER_SCHEDULE
+        SVC -> ROUTE : Route.charterRoute(...)
+        activate ROUTE
+        ROUTE --> SVC : aggregate
+        deactivate ROUTE
+    else regular branch
+        SVC -> RECURRING_SCHEDULE : new RouteRecurringSchedule(entries)
+        activate RECURRING_SCHEDULE
+        RECURRING_SCHEDULE --> SVC : recurring schedule
+        deactivate RECURRING_SCHEDULE
+        SVC -> ROUTE : Route.regularRoute(..., routeRecurringSchedule)
+        activate ROUTE
+        ROUTE --> SVC : aggregate
+        deactivate ROUTE
+    end
+
+    SVC -> ROUTE_REPO : save(route)
+    activate ROUTE_REPO
+    ROUTE_REPO --> SVC : savedRoute
+    deactivate ROUTE_REPO
+
+    SVC --> CTRL : savedRoute
+end
+
+CTRL --> UI : savedRoute or error message
+deactivate SVC
+deactivate CTRL
+UI -> UI : RoutePrinter.printCreationSummary(route)
+UI --> ATCC : displays result
+deactivate UI
+
+@enduml

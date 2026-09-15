@@ -1,0 +1,141 @@
+{
+  "ID": 888003,
+  "Type": "charter",
+  "Route": "CROSS-2BOX",
+  "AircraftId": "A380",
+  "Legs": [
+    {
+      "Departure": "LIS-W",
+      "Arrival": "EAST-ES",
+      "DepartureTime": "2026-06-02 10:00",
+      "ArrivalTime": "2026-06-02 12:00",
+      "Fuel": {
+        "Quantity": 298000,
+        "Unit": "kg"
+      },
+      "Load": {
+        "PassengerCount": 0,
+        "PassengerWeight": {
+          "Quantity": 0,
+          "Unit": "kg"
+        },
+        "CargoWeight": {
+          "Quantity": 0,
+          "Unit": "kg"
+        },
+        "TotalPayloadMassKg": 0
+      },
+      "FlightProfile": {
+        "Climb": [
+          {
+            "Altitude": 0,
+            "IAS": 250
+          }
+        ],
+        "Descend": [
+          {
+            "Altitude": 0,
+            "IAS": 200
+          }
+        ]
+      },
+      "Segments": [
+        {
+          "Mode": "cruise",
+          "Start": {
+            "Latitude": 38.5,
+            "Longitude": -9.0,
+            "Altitude": {
+              "Quantity": 8000,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 40.5,
+            "Longitude": 0.0,
+            "Altitude": {
+              "Quantity": 8000,
+              "Unit": "m"
+            }
+          }
+        }
+      ],
+      "DepartureAirport": {
+        "Id": "LIS-W",
+        "Icao": "LISW",
+        "Name": "Lisboa West Test",
+        "Town": "Lisboa",
+        "Country": "Portugal",
+        "Latitude": 38.5,
+        "Longitude": -9.0,
+        "Altitude": 600.0
+      },
+      "ArrivalAirport": {
+        "Id": "EAST-ES",
+        "Icao": "EAST",
+        "Name": "East Spain Test",
+        "Town": "Zaragoza",
+        "Country": "Spain",
+        "Latitude": 40.5,
+        "Longitude": 0.0,
+        "Altitude": 200.0
+      }
+    }
+  ],
+  "Aircraft": {
+    "ModelId": "A380",
+    "Description": "Aibus A380",
+    "Maker": "Airbus",
+    "Type": "passenger",
+    "NumberMotors": 4,
+    "Motor": "RR Trent 970",
+    "MotorType": "turbofan",
+    "CruiseAltitude": 13106.400000000001,
+    "CruiseSpeed": 0.85,
+    "TSFC": 1.6315459407646855e-05,
+    "LapseRateFactor": 0.7,
+    "Thrust0": 348310.0,
+    "ThrustMaxSpeed": 180000.0,
+    "MaxSpeed": 0.9,
+    "EWeight": 276800.0,
+    "MTOW": 575000.0,
+    "MaxPayload": 64000.0,
+    "FuelCapacity": 320000.0,
+    "VMO": 180.0555554,
+    "MMO": 0.89,
+    "WingArea": 845.0,
+    "WingSpan": 79.75,
+    "AspectRatio": 7.53,
+    "E": 0.84,
+    "CdragFunction": [
+      {
+        "Speed": 0.0,
+        "Cdrag0": 0.02
+      },
+      {
+        "Speed": 0.75,
+        "Cdrag0": 0.02
+      },
+      {
+        "Speed": 0.8,
+        "Cdrag0": 0.0204
+      },
+      {
+        "Speed": 0.85,
+        "Cdrag0": 0.022
+      },
+      {
+        "Speed": 0.9,
+        "Cdrag0": 0.037
+      },
+      {
+        "Speed": 0.95,
+        "Cdrag0": 0.038
+      },
+      {
+        "Speed": 1.0,
+        "Cdrag0": 0.04
+      }
+    ]
+  }
+}

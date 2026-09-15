@@ -1,0 +1,63 @@
+@startuml US070_RegisterAircraft
+
+autonumber
+
+actor "Company Collaborator" as CC
+
+participant "RegisterAircraftUI" as UI <<UI>>
+participant "RegisterAircraftController" as CTRL <<Controller>>
+participant "CompanyCollaboratorSession" as SESSION
+participant "AircraftService" as SVC <<Service>>
+database "AircraftRepository" as AREPO <<Repository>>
+database "AircraftModelRepository" as MREPO <<Repository>>
+participant "Aircraft" as AC <<Aggregate Root>>
+
+CC -> UI : enter registration, model, engine,\n cabin seats, country, crew, year of manufacture
+activate UI
+
+UI -> CTRL : registerAircraft(...)
+activate CTRL
+
+CTRL -> SESSION : requireAirTransportCompanyCollaborator(authz, collaborators)
+activate SESSION
+SESSION --> CTRL : CompanyCollaboratorUser (company IATA)
+deactivate SESSION
+
+CTRL -> SVC : registerAircraft(..., yearOfManufacture, companyIata)
+activate SVC
+
+SVC -> AREPO : existsByRegistration(registration)
+activate AREPO
+AREPO --> SVC : boolean
+deactivate AREPO
+
+alt registration already exists
+    SVC --> CTRL : DuplicateAircraftRegistrationException
+    CTRL --> UI : error message
+    UI --> CC : registration failed
+else new registration
+    SVC -> MREPO : findByID(modelId)
+    activate MREPO
+    MREPO --> SVC : Optional<AircraftModel>
+    deactivate MREPO
+
+    alt model not found
+        SVC --> CTRL : AircraftModelNotFoundException
+    else model found
+        SVC -> SVC : validateEngineCertifiedForModel\nvalidateCabinAgainstModel
+        SVC -> AC** : new Aircraft(..., ACTIVE, YearOfManufacture)
+        SVC -> AREPO : save(aircraft)
+        activate AREPO
+        AREPO --> SVC : aircraft
+        deactivate AREPO
+        SVC --> CTRL : aircraft
+        CTRL --> UI : success
+        UI --> CC : aircraft registered (Active)
+    end
+end
+
+deactivate SVC
+deactivate CTRL
+deactivate UI
+
+@enduml

@@ -1,0 +1,72 @@
+@startuml
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+
+title US077 – Deactivate Pilot (Collaborator holds PilotID)
+
+actor "Company Collaborator" as Actor
+participant "PilotUI"                  as UI        <<UI>>
+participant "DeactivatePilotController" as Ctrl     <<Controller>>
+participant "PilotService"             as Svc       <<Service>>
+database    "CollaboratorRepository"   as ColRepo   <<Repository>>
+database    "FlightPlanRepository"     as FPRepo    <<Repository>>
+participant "targetColab:Collaborator" as Colab     <<Aggregate Root>>
+
+Actor -> UI : selects pilot to deactivate (pilotId)
+activate UI
+
+UI -> Ctrl : deactivatePilot(pilotId, companyId)
+activate Ctrl
+
+    Ctrl -> Svc : deactivatePilot(pilotId, companyId)
+    activate Svc
+
+        Svc -> ColRepo : findByPilotId(pilotId)
+        activate ColRepo
+        ColRepo --> Svc : targetColab
+        deactivate ColRepo
+
+        alt targetColab == null
+            Svc --> Ctrl : error("No collaborator found with this Pilot ID")
+        else targetColab.status == INACTIVE
+            Svc --> Ctrl : error("Pilot is already inactive")
+        else
+
+            Svc -> FPRepo : hasActiveFlightPlans(targetColab.email)
+            activate FPRepo
+            FPRepo --> Svc : hasPlans
+            deactivate FPRepo
+
+            alt hasPlans == true
+                Svc --> Ctrl : error("Cannot deactivate: Active flight plans assigned")
+            else
+
+                Svc -> Colab : deactivate()
+                activate Colab
+                    note right of Colab
+                        Sets status = INACTIVE.
+                        The link to pilotId remains for
+                        historical reference.
+                    end note
+                Colab --> Svc : updated
+                deactivate Colab
+
+                Svc -> ColRepo : save(targetColab)
+                activate ColRepo
+                ColRepo --> Svc : saved
+                deactivate ColRepo
+
+                Svc --> Ctrl : success
+            end
+        end
+
+    deactivate Svc
+
+    Ctrl --> UI : result
+deactivate Ctrl
+UI --> Actor : display result
+deactivate UI
+@enduml

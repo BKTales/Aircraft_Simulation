@@ -1,0 +1,53 @@
+@startuml
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam Linetype ortho
+skinparam packageStyle rectangle
+skinparam nodesep 50
+skinparam ranksep 120
+
+skinparam object {
+    BackgroundColor<<Entity Root>> #D5E8D4
+    BackgroundColor<<Entity>>      #EAF4E1
+    BackgroundColor<<Value Object>> #DAE8FC
+    BorderColor #444444
+    FontSize 13
+}
+skinparam package {
+    BorderColor #888888
+    FontSize 11
+    FontStyle bold
+}
+
+
+ package AirportAggregate {
+        object Airport <<Entity Root>>{
+            airControlAreaId
+        }
+        object AirportName <<Value Object>>
+
+        object AirportTown <<Value Object>>
+
+        object AirportCountry <<Value Object>>
+        object IATACode <<Value Object>>
+        note right of IATACode
+            3-letter code, unique worldwide.
+        end note
+        object ICAOCode <<Value Object>>
+        note right of ICAOCode
+            4-letter code, unique worldwide.
+        end note
+        object GeoCoordinates <<Value Object>> {
+            latitude
+            longitude
+            altitude
+        }
+
+        Airport "1" *-- "1" AirportName
+        Airport "1" *-- "1" AirportTown
+        Airport "1" *-- "1" AirportCountry
+        Airport "1" *-- "1" IATACode
+        Airport "1" *-- "1" ICAOCode
+        Airport "1" *-- "1" GeoCoordinates
+    }
+@enduml

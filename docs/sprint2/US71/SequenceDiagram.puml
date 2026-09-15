@@ -1,0 +1,67 @@
+@startuml US071_DecommissionAircraft
+
+autonumber
+
+actor "Company Collaborator" as CC
+
+participant "DecommissionAircraftUI" as UI <<UI>>
+participant "DecommissionAircraftController" as CTRL <<Controller>>
+participant "CompanyCollaboratorSession" as SESSION
+participant "DecommissionAircraftService" as SVC <<Service>>
+database "AircraftRepository" as AREPO <<Repository>>
+database "FlightRepository" as FREPO <<Repository>>
+participant "Aircraft" as AC <<Aggregate Root>>
+
+CC -> UI : open decommission aircraft
+activate UI
+
+UI -> CTRL : listActiveCompanyAircraft()
+activate CTRL
+CTRL -> SESSION : requireAirTransportCompanyCollaborator(...)
+SESSION --> CTRL : company IATA
+CTRL -> SVC : listActiveFleet(companyIata)
+SVC -> AREPO : findActiveByOwnerCompany(companyIata)
+AREPO --> SVC : active aircraft
+SVC --> CTRL : fleet
+CTRL --> UI : choices
+deactivate CTRL
+
+CC -> UI : select registration
+UI -> CTRL : decommissionAircraft(registration)
+activate CTRL
+
+CTRL -> SESSION : requireAirTransportCompanyCollaborator(...)
+SESSION --> CTRL : company IATA
+
+CTRL -> SVC : decommission(registration, companyIata, now)
+activate SVC
+
+SVC -> AREPO : findByRegistration(registration)
+AREPO --> SVC : aircraft
+
+alt not found
+    SVC --> CTRL : AircraftNotFoundException
+else wrong company
+    SVC --> CTRL : AircraftNotInCompanyFleetException
+else not active
+    SVC --> CTRL : AircraftAlreadyDecommissionedException
+else active
+    SVC -> FREPO : existsPendingFlightForAircraft(registration, now)
+    FREPO --> SVC : boolean
+    alt pending flights
+        SVC --> CTRL : AircraftHasPendingFlightsException
+    else no pending flights
+        SVC -> AC : retireFromActiveService()
+        SVC -> AREPO : save(aircraft)
+        AREPO --> SVC : aircraft
+        SVC --> CTRL : aircraft
+        CTRL --> UI : success
+        UI --> CC : aircraft decommissioned
+    end
+end
+
+deactivate SVC
+deactivate CTRL
+deactivate UI
+
+@enduml

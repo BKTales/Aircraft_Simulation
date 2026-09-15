@@ -1,0 +1,59 @@
+@startuml
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+skinparam maxMessageSize 220
+
+actor "Backoffice Operator" as Operator
+participant "ManufacturerUI" as UI <<UI>>
+participant "RegisterManufacturerController" as Ctrl <<Controler>>
+participant "ManufacturerApplicationService" as AppSvc <<Service>>
+database "ManufacturerRepository" as Repo <<Repository>>
+participant "ManufacturerFactory" as Factory <<Factory>>
+participant "Manufacturer" as AR <<Aggregate Root>>
+
+Operator -> UI : selects "Register Manufacturer"
+activate UI
+UI --> Operator : requests data (manufacturerName, countryCode)
+Operator -> UI : enters requested data
+UI -> Ctrl : registerManufacturer(manufacturerName, countryCode)
+activate Ctrl
+
+    Ctrl -> AppSvc : registerManufacturer(manufacturerName, countryCode)
+    activate AppSvc
+
+        AppSvc -> Repo : existsByName(manufacturerName)
+        Repo --> AppSvc : exists (boolean)
+
+        alt exists == false
+
+            AppSvc -> Factory : newManufacturer(manufacturerName, countryCode)
+            activate Factory
+                Factory -> AR : create(manufacturerName, countryCode)
+                Factory --> AppSvc : newManufacturer
+            deactivate Factory
+
+            AppSvc -> Repo : save(newManufacturer)
+            AppSvc --> Ctrl : success
+        else exists == true
+            AppSvc --> Ctrl : error("Manufacturer name already exists")
+        end
+
+    deactivate AppSvc
+
+    alt success
+        Ctrl --> UI : Manufacturer Created
+    else error
+        Ctrl --> UI : Registration failed (Conflict)
+    end
+    deactivate Ctrl
+    alt success
+        UI --> Operator : display success message
+    else error
+        UI --> Operator : display error message
+    end
+
+deactivate UI
+@enduml

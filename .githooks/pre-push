@@ -1,0 +1,41 @@
+#!/bin/sh
+
+echo "[INFO] Starting pre-push validation..."
+
+BUILD_FILE=$(find . -maxdepth 3 \( -name "pom.xml" -o -name "build.gradle" -o -name "build.gradle.kts" \) -not -path "*/target/*" | awk '{ print length($0), $0 }' | sort -n | awk '{ print $2 }' | head -n 1)
+
+if [ -z "$BUILD_FILE" ]; then
+    echo "[ERROR] No pom.xml or build.gradle found in the project hierarchy."
+    echo "[ERROR] Push aborted."
+    exit 1
+fi
+
+BUILD_DIR=$(dirname "$BUILD_FILE")
+FILE_NAME=$(basename "$BUILD_FILE")
+
+echo "[INFO] Parent build file located at: $BUILD_FILE"
+echo "[INFO] Changing directory context to: $BUILD_DIR"
+
+cd "$BUILD_DIR" || {
+    echo "[ERROR] Failed to access the build directory."
+    exit 1
+}
+
+if [ "$FILE_NAME" = "pom.xml" ]; then
+    echo "[INFO] Maven multi-module project detected. Executing reactor build..."
+    COMMAND="mvn clean test"
+else
+    echo "[INFO] Gradle project detected. Executing build..."
+    COMMAND="./gradlew test"
+fi
+
+$COMMAND
+
+if [ $? -ne 0 ]; then
+    echo "[ERROR] Compilation or tests failed."
+    echo "[ERROR] Push rejected to prevent CI/CD pipeline failure."
+    exit 1
+fi
+
+echo "[INFO] Validation successful. Proceeding with push."
+exit 0

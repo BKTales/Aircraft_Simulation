@@ -1,0 +1,29 @@
+@startuml us107-violation-notify
+title US107 — Safety violation notify via condition variable
+
+participant "Main thread" as Main
+participant "SHM slots" as SHM
+participant "Safety thread" as Safety
+participant "violation_mutex\n+ violation_cond" as Sync
+participant "Report thread" as Report
+participant "simulation_report_t" as ReportData
+
+Main -> SHM: sim_step_collect (read updates)
+Main -> Safety: step_cond signal (after_collect)
+activate Safety
+Safety -> SHM: check_collisions_detect (scan slots)
+Safety -> Safety: SIGUSR1 + enqueue pending_violation_t
+Safety -> Sync: lock, push queue, signal violation_cond, unlock
+Safety -> Main: step_done_cond signal
+deactivate Safety
+
+activate Report
+Report -> Sync: wait violation_cond (queue non-empty)
+Report -> Sync: copy queue, clear, unlock
+Report -> ReportData: sim_record_violation_batch (mutex)
+Report --> Report: log [REPORT] violation recorded
+deactivate Report
+
+Main -> Main: check_flight_status
+
+@enduml

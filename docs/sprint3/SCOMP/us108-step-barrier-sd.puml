@@ -1,0 +1,92 @@
+@startuml US108_StepBarrier
+title US108 — One simulation step: semaphore lock-step (detail)
+
+autonumber
+
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+
+participant "Simulation loop\n[parent]" as LOOP
+participant "Shared memory" as SHM #LightBlue
+participant "Semaphore:\nstep start" as TICK #LightGreen
+participant "Semaphore:\nstep complete" as DONE #LightGreen
+participant "Flight process\n[child]" as CHILD
+
+note over LOOP, CHILD
+  Before step N: children are waiting on "step start".
+  active_flights = how many flights take part in this step.
+end note
+
+== 1. Parent publishes step ==
+
+LOOP -> SHM : lock shared memory;\nwrite step number N and simulation time;\nwrite how many flights are active;\nclear each flight's "update ready" flag;\nunlock shared memory
+activate SHM
+deactivate SHM
+
+== 2. Parent releases flights ==
+
+loop once per active flight
+    LOOP -> TICK : signal: start step N
+    activate TICK
+    deactivate TICK
+end
+
+== 3. Flights run in parallel ==
+
+par [each active flight]
+    CHILD -> TICK : wait until parent starts step
+    activate CHILD
+    activate TICK
+    deactivate TICK
+
+    CHILD -> SHM : read step number, time, and step duration
+    activate SHM
+    deactivate SHM
+
+    CHILD -> CHILD : compute new position for this step
+
+    CHILD -> SHM : write this flight's position update;\nset "update ready" for this flight
+    activate SHM
+    deactivate SHM
+
+    CHILD -> DONE : signal: this flight finished step N
+    activate DONE
+    deactivate DONE
+    deactivate CHILD
+end
+
+== 4. Parent waits for all flights ==
+
+loop once per active flight
+    LOOP -> DONE : wait until flight reports step complete
+    activate DONE
+    deactivate DONE
+end
+
+== 5. Parent uses results ==
+
+LOOP -> SHM : read each flight update\n(where "update ready" is set)
+activate SHM
+deactivate SHM
+
+LOOP -> LOOP : check collisions\nand flight status
+
+opt safety violation between two flights
+    LOOP ->> CHILD : send SIGUSR1
+    activate CHILD
+    CHILD -> CHILD : handle violation:\nblock other signals, log, unblock
+    deactivate CHILD
+    note right of LOOP : flight marked inactive;\nnot included in next step
+end
+
+== 6. Advance time ==
+
+LOOP -> SHM : increase simulation clock by one step;\nincrement step number
+activate SHM
+deactivate SHM
+
+note over LOOP, CHILD
+  Step N complete. Parent starts step N+1\nwith new "step start" signals.
+end note
+
+@enduml

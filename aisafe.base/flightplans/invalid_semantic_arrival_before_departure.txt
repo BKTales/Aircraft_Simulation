@@ -1,0 +1,13 @@
+flight invalid_semantic_arrival_before_departure {
+  type REGULAR ;
+    load passengers 150 pax_weight 12000.0 kg cargo_weight 1200.0 kg ;
+  leg {
+    departure LPPT 2026-04-21 17:30 ;
+    arrival EGLL 2026-04-21 14:15 ;
+    route {
+      segment (38.77, -9.13) (51.47, -0.45) alt 30000 m width 500 m ; wind 25 10.5 m/s ;
+    }
+    fuel 4500.50 kg ;
+    
+  }
+}

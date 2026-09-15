@@ -1,0 +1,255 @@
+{
+  "ID": 888001,
+  "Type": "charter",
+  "Route": "OK001",
+  "AircraftId": "A380",
+  "Mass": 560000,
+  "DepartureTime": "14:30",
+  "Leg": [
+    {
+      "Departure": {
+        "Airport": "LIS",
+        "AreaCode": "PT-N"
+      },
+      "Arrival": {
+        "Airport": "BCN",
+        "AreaCode": "ES-M"
+      },
+      "Fuel": {
+        "Quantity": 298000,
+        "Unit": "kg"
+      },
+      "Flight Profile": {
+        "Climb": [
+          {
+            "Altitude": {
+              "Value": 0,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 200,
+              "Unit": "Knots"
+            },
+            "RateClimb": {
+              "Value": 11.0,
+              "Unit": "m/s"
+            }
+          },
+          {
+            "Altitude": {
+              "Value": 5000,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 255,
+              "Unit": "Knots"
+            },
+            "RateClimb": {
+              "Value": 8.5,
+              "Unit": "m/s"
+            }
+          },
+          {
+            "Altitude": {
+              "Value": 10500,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 300,
+              "Unit": "Knots"
+            },
+            "RateClimb": {
+              "Value": 5.5,
+              "Unit": "m/s"
+            }
+          }
+        ],
+        "Descend": [
+          {
+            "Altitude": {
+              "Value": 0,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 145,
+              "Unit": "Knots"
+            },
+            "RateDescent": {
+              "Value": -5,
+              "Unit": "m/s"
+            }
+          },
+          {
+            "Altitude": {
+              "Value": 5000,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 280,
+              "Unit": "Knots"
+            },
+            "RateDescent": {
+              "Value": -12,
+              "Unit": "m/s"
+            }
+          },
+          {
+            "Altitude": {
+              "Value": 10500,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 300,
+              "Unit": "Knots"
+            },
+            "RateDescent": {
+              "Value": -12,
+              "Unit": "m/s"
+            }
+          }
+        ],
+        "Cruise": {
+          "Speed": {
+            "Value": 440,
+            "Unit": "Knots"
+          }
+        }
+      },
+      "Segments": [
+        {
+          "Mode": "climb",
+          "Start": {
+            "Latitude": 38.7742,
+            "Longitude": -9.1342,
+            "Altitude": {
+              "Quantity": 114,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 39.8,
+            "Longitude": -7.2,
+            "Altitude": {
+              "Quantity": 10500,
+              "Unit": "m"
+            }
+          }
+        },
+        {
+          "Mode": "cruise",
+          "Start": {
+            "Latitude": 39.8,
+            "Longitude": -7.2,
+            "Altitude": {
+              "Quantity": 10500,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 41.1,
+            "Longitude": 1.4,
+            "Altitude": {
+              "Quantity": 10500,
+              "Unit": "m"
+            }
+          }
+        },
+        {
+          "Mode": "descend",
+          "Start": {
+            "Latitude": 41.1,
+            "Longitude": 1.4,
+            "Altitude": {
+              "Quantity": 10500,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 41.2971,
+            "Longitude": 2.0785,
+            "Altitude": {
+              "Quantity": 4,
+              "Unit": "m"
+            }
+          }
+        }
+      ],
+      "DepartureAirport": {
+        "Id": "LIS",
+        "Icao": "LIS",
+        "Name": "Humberto Delgado Airport",
+        "Town": "Lisbon",
+        "Country": "Portugal",
+        "Latitude": 38.7812996,
+        "Longitude": -9.1359196,
+        "Altitude": 114.0
+      },
+      "ArrivalAirport": {
+        "Id": "BCN",
+        "Icao": "BCN",
+        "Name": "Barcelona-El Prat Airport",
+        "Town": "Barcelona",
+        "Country": "Spain",
+        "Latitude": 41.2971,
+        "Longitude": 2.0785,
+        "Altitude": 4.0
+      }
+    }
+  ],
+  "Aircraft": {
+    "ModelId": "A380",
+    "Description": "Aibus A380",
+    "Maker": "Airbus",
+    "Type": "passenger",
+    "NumberMotors": 4,
+    "Motor": "RR Trent 970",
+    "MotorType": "turbofan",
+    "CruiseAltitude": 13106.400000000001,
+    "CruiseSpeed": 0.85,
+    "TSFC": 1.6315459407646855e-05,
+    "LapseRateFactor": 0.7,
+    "Thrust0": 348310.0,
+    "ThrustMaxSpeed": 180000.0,
+    "MaxSpeed": 0.9,
+    "EWeight": 276800.0,
+    "MTOW": 575000.0,
+    "MaxPayload": 64000.0,
+    "FuelCapacity": 320000.0,
+    "VMO": 180.0555554,
+    "MMO": 0.89,
+    "WingArea": 845.0,
+    "WingSpan": 79.75,
+    "AspectRatio": 7.53,
+    "E": 0.84,
+    "CdragFunction": [
+      {
+        "Speed": 0.0,
+        "Cdrag0": 0.02
+      },
+      {
+        "Speed": 0.75,
+        "Cdrag0": 0.02
+      },
+      {
+        "Speed": 0.8,
+        "Cdrag0": 0.0204
+      },
+      {
+        "Speed": 0.85,
+        "Cdrag0": 0.022
+      },
+      {
+        "Speed": 0.9,
+        "Cdrag0": 0.037
+      },
+      {
+        "Speed": 0.95,
+        "Cdrag0": 0.038
+      },
+      {
+        "Speed": 1.0,
+        "Cdrag0": 0.04
+      }
+    ]
+  }
+}

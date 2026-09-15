@@ -1,0 +1,46 @@
+@startuml us085-components
+
+skinparam componentStyle rectangle
+
+package "Presentation" {
+    [ValidateFlightPlanUI] <<UI>>
+}
+
+package "Application" {
+    [ValidateFlightPlanController] <<Controller>>
+    [ValidateFlightPlanService] <<Service>>
+}
+
+package "DSL" {
+    [FlightDslParser] <<ANTLR>>
+}
+
+package "Simulation" {
+    [FlightSimulationService] <<Service>>
+    [SimulationReportParser]
+}
+
+package "C Process" {
+    [flight_simulator] <<C>>
+}
+
+package "Domain" {
+    [Flight]
+    [FlightPlan]
+    [FlightSimulationReport]
+}
+
+database "Persistence" {
+    [FlightRepository]
+}
+
+[ValidateFlightPlanUI] --> [ValidateFlightPlanController]
+[ValidateFlightPlanController] --> [ValidateFlightPlanService]
+[ValidateFlightPlanService] --> [FlightDslParser]
+[ValidateFlightPlanService] --> [FlightRepository]
+[ValidateFlightPlanService] --> [FlightSimulationService]
+[FlightSimulationService] --> [flight_simulator]
+[FlightSimulationService] --> [SimulationReportParser]
+[ValidateFlightPlanService] --> [FlightPlan]
+
+@enduml

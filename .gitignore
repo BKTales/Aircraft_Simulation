@@ -1,0 +1,18 @@
+target/
+**/*/target/
+.idea/
+*.class
+*.jar
+.vscode/
+
+aisafe.base/.env
+
+# C build artifacts (make output under flight_simulator/src/main)
+*.o
+flight_simulator/src/main/flight_simulator
+
+# US111 — generated simulation reports (keep .gitkeep / directory structure)
+reports/simulations/**/*.txt
+reports/simulations/**/*.csv
+aisafe.base/reports/simulations/**/*.txt
+aisafe.base/reports/simulations/**/*.csv

@@ -1,0 +1,52 @@
+================================================================================
+                    AISafe FLIGHT SIMULATION REPORT
+================================================================================
+ Generated at       : 2026-06-14 14:59:16
+ Tick interval (s)  : 1
+================================================================================
+
+FLIGHT EXECUTION RECORDS
+--------------------------------------------------------------------------------
+
+[Flight 000]  Flight ID 789012
+  Route              : LIS -> BCN
+  Execution status   : SUCCESS
+  Simulation step    : 9999
+  Departure          : 01/01 00:00:00 UTC
+  Last update at     : 01/01 02:46:39 UTC  (02h 46m 39s)
+  Planned arrival    : 01/01 00:00:00 UTC  (00h 00m 00s)
+  Position           : lat +41.22000 deg, lon +1.92000 deg, alt 0.00 m
+  Velocity (scalar)  : 350.17 kt (180.14 m/s ground speed)
+  Fuel total         : 320000.00 kg
+  Fuel used          : 62672.20 kg
+  Fuel remaining     : 257327.80 kg
+--------------------------------------------------------------------------------
+
+[Flight 001]  Flight ID 789013
+  Route              : STN -> FCO
+  Execution status   : SUCCESS
+  Simulation step    : 9999
+  Departure          : 01/01 00:00:00 UTC
+  Last update at     : 01/01 02:46:39 UTC  (02h 46m 39s)
+  Planned arrival    : 01/01 00:00:00 UTC  (00h 00m 00s)
+  Position           : lat +41.78000 deg, lon +12.18000 deg, alt 0.00 m
+  Velocity (scalar)  : 350.17 kt (180.14 m/s ground speed)
+  Fuel total         : 320000.00 kg
+  Fuel used          : 62672.59 kg
+  Fuel remaining     : 257327.41 kg
+--------------------------------------------------------------------------------
+
+================================================================================
+ VALIDATION SUMMARY
+================================================================================
+ Flights reported             : 2
+ Flights completed (SUCCESS)  : 2
+ Execution failures           : 0
+ Collision events             : 0
+ Flights with COLLISION status: 0
+ Safety violation events      : 0
+ Failure counter (simulator)  : 0  (threshold 3)
+--------------------------------------------------------------------------------
+ FINAL VALIDATION RESULT      : PASS
+================================================================================
+

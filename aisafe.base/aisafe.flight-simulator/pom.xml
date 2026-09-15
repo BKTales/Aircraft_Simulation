@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>eapli</groupId>
+        <artifactId>aisafe</artifactId>
+        <version>1.0.0-SNAPSHOT</version>
+    </parent>
+
+    <artifactId>aisafe.flight-simulator</artifactId>
+    <packaging>pom</packaging>
+    <name>aisafe.flight-simulator</name>
+    <description>Builds the SCOMP flight_simulator native binary (make) for US085/US100.</description>
+
+    <properties>
+        <flight.simulator.dir>${maven.multiModuleProjectDirectory}/../flight_simulator/src/main</flight.simulator.dir>
+        <skip.flight.simulator.build>false</skip.flight.simulator.build>
+    </properties>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>3.5.0</version>
+                <executions>
+                    <execution>
+                        <id>simulator-make-clean</id>
+                        <phase>clean</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${skip.flight.simulator.build}</skip>
+                            <executable>make</executable>
+                            <workingDirectory>${flight.simulator.dir}</workingDirectory>
+                            <arguments>
+                                <argument>clean</argument>
+                            </arguments>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>simulator-make</id>
+                        <phase>generate-sources</phase>
+                        <goals>
+                            <goal>exec</goal>
+                        </goals>
+                        <configuration>
+                            <skip>${skip.flight.simulator.build}</skip>
+                            <executable>make</executable>
+                            <workingDirectory>${flight.simulator.dir}</workingDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

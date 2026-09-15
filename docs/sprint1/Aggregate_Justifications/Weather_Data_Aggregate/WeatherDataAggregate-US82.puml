@@ -1,0 +1,120 @@
+@startuml WeatherDataFlight_SD
+title Add weather data to flight - US082
+skinparam NoteBackgroundColor #FFFACD
+skinparam NoteBorderColor #DAA520
+
+actor Pilot as User
+participant "WeatherDataUI" as UI
+participant "WeatherDataController" as Controller
+participant "WeatherDataService" as Service
+database "FlightRepository" as DBFlight
+database "WeatherDataRepository" as DBWeather
+
+note over User: Pilot is authenticated\nand has an active session
+
+User -> UI: request flights
+activate UI
+UI -> Controller: getFlightsByPilot(pilotId)
+activate Controller
+Controller -> Service: getFlightsByPilot(pilotId)
+activate Service
+Service -> DBFlight: findByPilotId(pilotId)
+activate DBFlight
+DBFlight --> Service: flights
+deactivate DBFlight
+Service --> Controller: flights
+deactivate Service
+Controller --> UI: flights
+deactivate Controller
+UI --> User: display all flights
+deactivate UI
+
+User -> UI: chooses one flight
+activate UI
+UI -> Controller: getWeatherDataByFlight(flightDesignator)
+activate Controller
+Controller -> Service: getWeatherDataByFlight(flightDesignator)
+activate Service
+
+Service -> DBFlight: findByDesignator(flightDesignator)
+activate DBFlight
+DBFlight --> Service: Optional<Flight>
+deactivate DBFlight
+
+alt Flight not found
+    Service --> Controller: FlightNotFoundException
+    deactivate Service
+    Controller --> UI: propagate error
+    deactivate Controller
+    UI --> User: display error message
+    deactivate UI
+
+else Flight found
+    note right of Service
+      FlightPlan is a Value Object inside Flight.
+      It has no ID1 accessed only through
+      the Flight aggregate root.
+    end note
+
+    Service -> DBWeather: findByAirControlArea(flight.flightPlan.airControlAreaId)
+    activate DBWeather
+    DBWeather --> Service: weatherDataList
+    deactivate DBWeather
+
+    Service --> Controller: weatherDataList
+    deactivate Service
+    Controller --> UI: weatherDataList
+    deactivate Controller
+    UI --> User: display available weather data
+    deactivate UI
+
+    User -> UI: chooses weather data
+    activate UI
+    UI -> Controller: linkWeatherToFlightPlan(weatherDataId, flightDesignator)
+    activate Controller
+    Controller -> Service: linkWeatherToFlightPlan(weatherDataId, flightDesignator)
+    activate Service
+
+    Service -> DBFlight: findByDesignator(flightDesignator)
+    activate DBFlight
+    DBFlight --> Service: flight
+    deactivate DBFlight
+
+    Service -> DBWeather: findById(weatherDataId)
+    activate DBWeather
+    DBWeather --> Service: Optional<WeatherData>
+    deactivate DBWeather
+
+    alt WeatherData not found
+        Service --> Controller: WeatherDataNotFoundException
+        deactivate Service
+        Controller --> UI: propagate error
+        deactivate Controller
+        UI --> User: display error message
+        deactivate UI
+
+    else WeatherData found
+
+        note right of Service
+          WeatherData is associated with Flight
+          via JPA @ManyToOne on FLIGHT.
+          The controller resolves the ID and
+          passes the entity to Flight#assignWeatherData.
+          Flight plan status is unchanged.
+        end note
+
+        Service -> DBFlight: save(flight.assignWeatherData(weatherData))
+        activate DBFlight
+        DBFlight --> Service: updatedFlight
+        deactivate DBFlight
+
+        Service --> Controller: success(updatedFlight)
+        deactivate Service
+        Controller --> UI: propagate success
+        deactivate Controller
+        UI --> User: confirm "Weather data added to flight plan successfully"
+        deactivate UI
+    end
+end
+
+@enduml

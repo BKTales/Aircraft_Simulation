@@ -1,0 +1,66 @@
+@startuml US041_RegisterWeatherData
+
+autonumber
+
+actor "Weather Person" as OP
+
+participant "RegisterWeatherDataUI" as UI <<UI>>
+participant "RegisterWeatherDataController" as CTRL <<Controller>>
+participant "WeatherDataService" as SVC <<Service>>
+database "AirControlAreaRepository" as AREPO <<Repository>>
+database "WeatherDataRepository" as WREPO <<Repository>>
+participant "WeatherComplianceService" as COMP <<Service>>
+participant "WeatherData" as WD <<Aggregate Root>>
+participant "RegisterWeatherResult" as RES <<Result>>
+
+OP -> UI : input area code, section coordinates, temperature, wind, humidity, pressure, date interval
+activate UI
+
+UI -> CTRL : registerWeatherData(...)
+activate CTRL
+
+CTRL -> CTRL : ensure role is Weather Person
+CTRL -> SVC : registerWeatherData(..., txCtx)
+activate SVC
+
+SVC -> SVC : beginTransaction
+
+SVC -> AREPO : ofIdentity(areaCode)
+activate AREPO
+AREPO --> SVC : Optional<AirControlArea>
+deactivate AREPO
+
+alt area not found
+    SVC -> SVC : mapExceptionToResult(IllegalArgumentException)
+    SVC --> CTRL : RegisterWeatherResult(AREA_NOT_FOUND)
+    CTRL --> UI : result
+    UI --> OP : error message (switch outcome)
+else area found
+    SVC -> COMP : isSectionValidInsideArea(area, sectionBoundary)
+    activate COMP
+    COMP --> SVC : boolean
+    deactivate COMP
+
+    alt section outside area
+        SVC -> SVC : mapExceptionToResult(WeatherSectionOutOfBoundsException)
+        SVC --> CTRL : RegisterWeatherResult(SECTION_OUT_OF_BOUNDS)
+        CTRL --> UI : result
+        UI --> OP : error message (switch outcome)
+    else valid section
+        SVC -> WD** : new WeatherData(...)
+        SVC -> WREPO : save(weatherData)
+        activate WREPO
+        WREPO --> SVC : weatherData
+        deactivate WREPO
+        SVC -> SVC : commitTransaction
+        SVC --> CTRL : RegisterWeatherResult(SUCCESS, weatherData)
+        CTRL --> UI : result
+        UI --> OP : weather data registered
+    end
+end
+
+deactivate SVC
+deactivate CTRL
+deactivate UI
+
+@enduml

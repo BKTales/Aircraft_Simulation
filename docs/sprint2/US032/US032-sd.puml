@@ -1,0 +1,96 @@
+@startuml
+
+actor Admin
+participant ActivateDeactivateUserUI
+participant ActivateDeactivateUserController
+participant UserManagementService
+participant UserRepository
+
+Admin -> ActivateDeactivateUserUI : selects Disable/Enable User
+activate ActivateDeactivateUserUI
+    ActivateDeactivateUserUI -> Admin : show menu (1. Deactivate / 2. Activate)
+deactivate ActivateDeactivateUserUI
+
+Admin -> ActivateDeactivateUserUI : chooses operation
+activate ActivateDeactivateUserUI
+
+    alt chooses Deactivate (1)
+        ActivateDeactivateUserUI -> ActivateDeactivateUserController : activeUsers()
+        activate ActivateDeactivateUserController
+            ActivateDeactivateUserController -> ActivateDeactivateUserController : ensureAuthenticatedUserHasAnyOf(ADMIN)
+            ActivateDeactivateUserController -> UserManagementService : activeUsers()
+            activate UserManagementService
+                UserManagementService -> UserRepository : findByActive(true)
+                activate UserRepository
+                    UserRepository --> UserManagementService : Iterable<SystemUser>
+                deactivate UserRepository
+                UserManagementService --> ActivateDeactivateUserController : Iterable<SystemUser>
+            deactivate UserManagementService
+            ActivateDeactivateUserController --> ActivateDeactivateUserUI : Iterable<SystemUser>
+        deactivate ActivateDeactivateUserController
+
+        ActivateDeactivateUserUI -> ActivateDeactivateUserController : currentUser()
+        activate ActivateDeactivateUserController
+            ActivateDeactivateUserController --> ActivateDeactivateUserUI : Optional<SystemUser>
+        deactivate ActivateDeactivateUserController
+
+        ActivateDeactivateUserUI -> ActivateDeactivateUserUI : filter out current user from list
+        ActivateDeactivateUserUI -> Admin : show active users list (excluding self)
+        Admin -> ActivateDeactivateUserUI : selects user to deactivate
+
+        ActivateDeactivateUserUI -> ActivateDeactivateUserController : deactivateUser(target)
+        activate ActivateDeactivateUserController
+            ActivateDeactivateUserController -> ActivateDeactivateUserController : ensureAuthenticatedUserHasAnyOf(ADMIN)
+            ActivateDeactivateUserController -> UserManagementService : deactivateUser(target)
+            activate UserManagementService
+                UserManagementService -> UserRepository : save(user)
+                activate UserRepository
+                    UserRepository --> UserManagementService : SystemUser
+                deactivate UserRepository
+                UserManagementService --> ActivateDeactivateUserController : SystemUser
+            deactivate UserManagementService
+            ActivateDeactivateUserController --> ActivateDeactivateUserUI : SystemUser
+        deactivate ActivateDeactivateUserController
+        ActivateDeactivateUserUI -> Admin : show success message
+
+    else chooses Activate (2)
+        ActivateDeactivateUserUI -> ActivateDeactivateUserController : nonActiveUsers()
+        activate ActivateDeactivateUserController
+            ActivateDeactivateUserController -> ActivateDeactivateUserController : ensureAuthenticatedUserHasAnyOf(ADMIN)
+            ActivateDeactivateUserController -> UserManagementService : deactivatedUsers()
+            activate UserManagementService
+                UserManagementService -> UserRepository : findByActive(false)
+                activate UserRepository
+                    UserRepository --> UserManagementService : Iterable<SystemUser>
+                deactivate UserRepository
+                UserManagementService --> ActivateDeactivateUserController : Iterable<SystemUser>
+            deactivate UserManagementService
+            ActivateDeactivateUserController --> ActivateDeactivateUserUI : Iterable<SystemUser>
+        deactivate ActivateDeactivateUserController
+
+        ActivateDeactivateUserUI -> Admin : show inactive users list
+        Admin -> ActivateDeactivateUserUI : selects user to activate
+
+        ActivateDeactivateUserUI -> ActivateDeactivateUserController : activateUser(target)
+        activate ActivateDeactivateUserController
+            ActivateDeactivateUserController -> ActivateDeactivateUserController : ensureAuthenticatedUserHasAnyOf(ADMIN)
+            ActivateDeactivateUserController -> UserManagementService : activateUser(target)
+            activate UserManagementService
+                UserManagementService -> UserRepository : save(user)
+                activate UserRepository
+                    UserRepository --> UserManagementService : SystemUser
+                deactivate UserRepository
+                UserManagementService --> ActivateDeactivateUserController : SystemUser
+            deactivate UserManagementService
+            ActivateDeactivateUserController --> ActivateDeactivateUserUI : SystemUser
+        deactivate ActivateDeactivateUserController
+        ActivateDeactivateUserUI -> Admin : show success message
+    end
+
+    alt error (IntegrityViolationException / ConcurrencyException)
+        ActivateDeactivateUserUI -> Admin : show error message
+    end
+
+deactivate ActivateDeactivateUserUI
+
+@enduml

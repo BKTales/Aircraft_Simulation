@@ -1,0 +1,17 @@
+{
+  "areaCode": "AREA-EAST",
+  "records": [
+    {
+      "startTimeS": 0,
+      "endTimeS": 9999999999,
+      "windDirectionDeg": 0,
+      "windSpeedMs": 20.0,
+      "bounds": {
+        "minLat": 39.8,
+        "maxLat": 41.5,
+        "minLon": -4.0,
+        "maxLon": 1.0
+      }
+    }
+  ]
+}

@@ -1,0 +1,21 @@
+:root {
+  --bg: #0d0f12;
+  --surface: #13161b;
+  --border: #1e2128;
+  --border-badge: #2d3140;
+  --text: #e8eaed;
+  --muted: #5a6070;
+  --log: #8892a4;
+  --hover: #181c22;
+  --green: #22c55e;
+  --orange: #f59e0b;
+  --red: #ef4444;
+  --blue: #3b82f6;
+  --logo-bg: #1d4ed8;
+  --error-bg: #1a0a0a;
+  --font-sans: "DM Sans", sans-serif;
+  --font-mono: "IBM Plex Mono", monospace;
+  --radius: 4px;
+  --logo-radius: 6px;
+  --header-h: 56px;
+}

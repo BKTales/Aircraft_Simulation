@@ -1,0 +1,24 @@
+metric,value
+flights_reported,3
+flights_success,0
+execution_failures,3
+collision_events,1
+collision_flights,2
+collision_flight_ids,999888;123456
+safety_violation_events,1
+simulator_failure_count,0
+simulator_failure_threshold,3
+validation_result,FAIL
+
+collision_flights
+flight_id,departure,arrival,execution_status,step,elapsed_s,latitude_deg,longitude_deg,altitude_m,speed_kt,speed_ms,fuel_total_kg,fuel_used_kg,fuel_remaining_kg
+999888,OPO,MAD,COLLISION,2907,2907,40.493600,-3.566760,1366.51,314.85,161.97,145751.83,131170.53,14581.30
+123456,OPO,LIS,COLLISION,5847,5847,40.493600,-3.566760,1070.00,179.10,92.14,145751.83,133311.95,12439.88
+
+flight_id,departure,arrival,execution_status,step,departure_utc,last_update_utc,real_duration,planned_arrival_utc,planned_duration,latitude_deg,longitude_deg,altitude_m,speed_kt,speed_ms,fuel_total_kg,fuel_used_kg,fuel_remaining_kg
+111111,MAD,OPO,OUT OF FUEL,3191,02/06 23:50:00,03/06 00:43:11,00h 53m 11s,02/07 01:30:00,697h 40m 00s,41.248100,-8.681400,873.98,172.46,88.72,145751.83,145751.83,0.00
+999888,OPO,MAD,COLLISION,2907,03/06 00:39:00,03/06 01:27:27,00h 48m 27s,03/06 01:27:27,00h 48m 27s,40.493600,-3.566760,1366.51,314.85,161.97,145751.83,131170.53,14581.30
+123456,OPO,LIS,COLLISION,5847,02/06 23:50:00,03/06 01:27:27,01h 37m 27s,03/06 01:27:27,01h 37m 27s,40.493600,-3.566760,1070.00,179.10,92.14,145751.83,133311.95,12439.88
+
+flight_id_a,flight_id_b,violation_type,step,elapsed_s,separation_m,alt_sep_m,lat_a_deg,lon_a_deg,alt_a_m,speed_kt_a,speed_ms_a,lat_b_deg,lon_b_deg,alt_b_m,speed_kt_b,speed_ms_b
+999888,123456,COLLISION,5847,5847,0.00,296.52,40.493600,-3.566760,1366.51,314.85,161.97,40.493600,-3.566760,1070.00,179.10,92.14

@@ -1,0 +1,68 @@
+@startuml US057_AddCertifiedEngineToAircraftModel
+
+autonumber
+
+actor "Admin / Backoffice Operator" as OP
+
+participant "AddEngineModelToAircraftModelUI" as UI <<UI>>
+participant "AddEngineModelToAircraftModelController" as CTRL <<Controller>>
+participant "AircraftModelService" as SVC <<Service>>
+database "AircraftModelRepository" as AREPO <<Repository>>
+database "EngineModelRepository" as EREPO <<Repository>>
+participant "AircraftModel" as MODEL <<Aggregate Root>>
+
+OP -> UI : choose aircraft model id and engine model id
+activate UI
+
+UI -> CTRL : addEngineModelToAircraftModel(aircraftModelId, engineModelId)
+activate CTRL
+
+CTRL -> CTRL : ensure role is Admin or Backoffice Operator
+
+CTRL -> SVC : addEngineModelToAircraftModel(aircraftModelId, engineModelId)
+activate SVC
+
+SVC -> AREPO : findByID(aircraftModelId)
+activate AREPO
+AREPO --> SVC : Optional<AircraftModel>
+deactivate AREPO
+
+alt aircraft model not found
+    SVC --> CTRL : AircraftModelNotFoundException
+    CTRL --> UI : error message
+    UI --> OP : operation failed
+else aircraft model found
+    SVC -> EREPO : findByModelId(engineModelId)
+    activate EREPO
+    EREPO --> SVC : Optional<EngineModel>
+    deactivate EREPO
+
+    alt engine model not found
+        SVC --> CTRL : EngineModelNotFoundException
+        CTRL --> UI : error message
+        UI --> OP : operation failed
+    else engine model found
+        SVC -> MODEL : addEngineConfiguration(engineModelId)
+
+        alt duplicate certification
+            MODEL --> SVC : IllegalArgumentException
+            SVC --> CTRL : IllegalArgumentException
+            CTRL --> UI : error message
+            UI --> OP : operation failed
+        else valid new certification
+            SVC -> AREPO : save(model)
+            activate AREPO
+            AREPO --> SVC : updated model
+            deactivate AREPO
+            SVC --> CTRL : updated model
+            CTRL --> UI : success
+            UI --> OP : engine certification added
+        end
+    end
+end
+
+deactivate SVC
+deactivate CTRL
+deactivate UI
+
+@enduml

@@ -1,0 +1,69 @@
+================================================================================
+                    AISafe FLIGHT SIMULATION REPORT
+================================================================================
+ Generated at       : 2026-06-14 14:59:16
+ Tick interval (s)  : 1
+================================================================================
+
+FLIGHT EXECUTION RECORDS
+--------------------------------------------------------------------------------
+
+[Flight 000]  Flight ID 100002
+  Route              : OPO -> MAD
+  Execution status   : COLLISION
+  Simulation step    : 1376
+  Departure          : 01/01 00:00:00 UTC
+  Last update at     : 01/01 00:22:56 UTC  (00h 22m 56s)
+  Planned arrival    : 01/01 00:22:57 UTC  (00h 22m 57s)
+  Position           : lat +41.27644 deg, lon -6.21031 deg, alt 9247.95 m
+  Velocity (scalar)  : 423.47 kt (217.85 m/s ground speed)
+  Fuel total         : 145751.83 kg
+  Fuel used          : 131520.64 kg
+  Fuel remaining     : 14231.19 kg
+--------------------------------------------------------------------------------
+
+[Flight 001]  Flight ID 100001
+  Route              : MAD -> OPO
+  Execution status   : COLLISION
+  Simulation step    : 1376
+  Departure          : 01/01 00:00:00 UTC
+  Last update at     : 01/01 00:22:56 UTC  (00h 22m 56s)
+  Planned arrival    : 01/01 00:22:57 UTC  (00h 22m 57s)
+  Position           : lat +41.27645 deg, lon -6.15444 deg, alt 9247.82 m
+  Velocity (scalar)  : 423.47 kt (217.85 m/s ground speed)
+  Fuel total         : 145751.83 kg
+  Fuel used          : 131424.53 kg
+  Fuel remaining     : 14327.30 kg
+--------------------------------------------------------------------------------
+
+================================================================================
+ SAFETY VIOLATION EVENTS
+================================================================================
+
+[Event 000]  COLLISION
+  Simulation step    : 1376  (elapsed 1376 s)
+  Horizontal sep.    : 4668.79 m
+  Vertical sep.      : 0.13 m
+  Flight A (ID 100002)
+    Position         : lat +41.27644, lon -6.21031, alt 9247.95 m
+    Velocity         : 423.47 kt (217.85 m/s)
+  Flight B (ID 100001)
+    Position         : lat +41.27645, lon -6.15444, alt 9247.82 m
+    Velocity         : 423.47 kt (217.85 m/s)
+--------------------------------------------------------------------------------
+
+================================================================================
+ VALIDATION SUMMARY
+================================================================================
+ Flights reported             : 2
+ Flights completed (SUCCESS)  : 0
+ Execution failures           : 2
+ Collision events             : 1
+ Flights with COLLISION status: 2 (100002;100001)
+ Safety violation events      : 1
+ Failure counter (simulator)  : 2  (threshold 3)
+--------------------------------------------------------------------------------
+ FINAL VALIDATION RESULT      : FAIL
+  -> COLLISION: flights 100002 and 100001 (step 1376, sep 4668.79 m).
+================================================================================
+

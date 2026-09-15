@@ -1,0 +1,180 @@
+@startuml US078_AtccRemoteAccess
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+skinparam maxMessageSize 220
+
+title US078 - ATCC Remote Access (TCP)
+
+actor "ATCC Operator" as Operator
+participant "RemoteClientApp" as Client <<TCP Client>>
+participant "TcpServer" as TcpSrv <<Server>>
+participant "ClientHandler" as Handler <<Server>>
+participant "LoginCredentialsParser" as Parser <<Server>>
+participant "AuthenticationCredentialHandler" as Auth <<Server>>
+participant "SessionManager" as Sessions <<Server>>
+participant "AtccCommandHandler" as Atcc <<Handler US078>>
+participant "RemovePilotCollaboratorController" as RemCtrl <<Controller US077>>
+database "PilotUserRepository" as PilotRepo <<Repository>>
+participant "RemoteAccessLogger" as Logger <<US090>>
+
+== Connection ==
+
+Operator -> Client : launch client\n(host 127.0.0.1:2225\nor vsgate:10353)
+activate Client
+
+Client -> TcpSrv : TCP connect
+activate TcpSrv
+TcpSrv -> Handler : new Thread(ClientHandler(socket))
+activate Handler
+deactivate TcpSrv
+
+== Login ==
+
+Operator -> Client : enter username + password
+Client -> Handler : opcode 10 LOGIN\npayload: username;password;ATCC
+
+Handler -> Parser : parse("username;password;ATCC")
+activate Parser
+Parser --> Handler : ParsedLogin(username, password, ATCC)
+deactivate Parser
+
+Handler -> Auth : authenticate(username, password, ATCC)
+activate Auth
+Auth --> Handler : true / false
+deactivate Auth
+
+alt invalid credentials
+    Handler --> Client : opcode -11 FAILED_LOGIN\n"LOGIN FAILED"
+    Handler -> Logger : log(LOGIN_FAIL, username, ip, port, UNKNOWN, null)
+    activate Logger
+    Logger --> Handler : —
+    deactivate Logger
+else already logged in (SessionManager)
+    Handler --> Client : opcode -11 FAILED_LOGIN\n"ALREADY LOGGED IN"
+    Handler -> Logger : log(LOGIN_FAIL, username, ip, port, UNKNOWN, null)
+    activate Logger
+    Logger --> Handler : —
+    deactivate Logger
+else success
+    Handler -> Sessions : login(username)
+    activate Sessions
+    Sessions --> Handler : true
+    deactivate Sessions
+    Handler -> Handler : sessionRole = ATCC
+    Handler --> Client : opcode 11 SUCCESS_LOGIN\n"LOGIN SUCCESSFUL"
+    Handler -> Logger : log(LOGIN_OK, username, ip, port, US78, null)
+    activate Logger
+    Logger --> Handler : —
+    deactivate Logger
+end
+
+note over Logger
+  Logger → UdpClient → UDP port 2227
+  (Remote Accesses Logging Server, US090)
+end note
+
+== Authenticated session (opcodes 20–39) ==
+
+loop while connection open
+
+    Operator -> Client : select operation
+    Client -> Handler : opcode [20–39]\npayload (UTF-8)
+
+    alt sessionRole != ATCC
+        Handler --> Client : opcode -21 FORBIDDEN\n"ATCC role required"
+    else ATCC command
+        Handler -> Atcc : handle(opcode, payload, out)
+        activate Atcc
+        Atcc -> Atcc : verify ATCC role\n(AuthzRegistry session)
+
+        note over Atcc
+          opcode 20 LIST_AIRCRAFT_MODELS (US055)
+          opcode 21 REGISTER_AIRCRAFT    (US070)
+          opcode 22 DECOMMISSION         (US071)
+          opcode 24 LIST_FLEET           (US072)
+          opcode 27 CREATE_ROUTE         (US073)
+          opcode 28 DEACTIVATE_ROUTE     (US074)
+          opcode 29 REMOVE_PILOT         (US077)
+          opcode 30 ADD_PILOT_NEW_USER   (US075)
+          opcode 31 ADD_PILOT_EXISTING   (US075)
+          opcode 32 LIST_PILOT_ROSTER    (US076)
+          ...
+        end note
+
+        alt example: REMOVE_PILOT (op 29)
+
+            Atcc -> RemCtrl : deactivatePilot(email)
+            activate RemCtrl
+
+            RemCtrl -> PilotRepo : findByEmailWithLock(email, company)\n<<PESSIMISTIC_WRITE>>
+            activate PilotRepo
+            PilotRepo --> RemCtrl : Optional<PilotUser>
+            deactivate PilotRepo
+
+            alt pilot not found
+                RemCtrl --> Atcc : DeactivatePilotResult(NOT_FOUND)
+                deactivate RemCtrl
+                Atcc --> Client : opcode -25 NOT_FOUND\n"Pilot not found"
+            else pilot has active flight plans
+                RemCtrl --> Atcc : DeactivatePilotResult(HAS_ACTIVE_FLIGHTS)
+                deactivate RemCtrl
+                Atcc --> Client : opcode -26 CONFLICT\n"Pilot has pending flight plans"
+            else success
+                RemCtrl --> Atcc : DeactivatePilotResult(SUCCESS)
+                deactivate RemCtrl
+                Atcc --> Client : opcode 0 OK\n"OK|<pilot DTO>"
+            end
+
+        else other ATCC opcode
+            Atcc -> Atcc : delegate to respective controller\n(RegisterAircraftController,\nCreateRouteController, ...)
+            Atcc --> Client : opcode 0 OK + result text\nor error code
+        end
+
+        Atcc -> Logger : logAction(null, "OPERATION_NAME")
+        activate Logger
+        Logger --> Atcc : —
+        deactivate Logger
+        deactivate Atcc
+    end
+
+end
+
+== Logout ==
+
+Operator -> Client : select logout
+Client -> Handler : opcode 12 LOGOUT
+
+Handler -> Logger : log(LOGOUT, username, ip, port, US78, null)
+activate Logger
+Logger --> Handler : —
+deactivate Logger
+
+Handler -> Sessions : logout(username)
+activate Sessions
+Sessions --> Handler : —
+deactivate Sessions
+
+Handler -> Handler : clearSession(), authenticated = false
+Handler --> Client : opcode 13 SUCCESS_LOGOUT\n"LOGOUT SUCCESSFUL"
+deactivate Client
+
+== Disconnect without logout ==
+
+Client ->x Handler : TCP close / EOF
+Handler -> Sessions : logout(username)
+activate Sessions
+Sessions --> Handler : —
+deactivate Sessions
+
+Handler -> Logger : log(DISCONNECT, username, ip, port, US78, null)
+activate Logger
+Logger --> Handler : —
+deactivate Logger
+
+Handler -> Handler : close socket
+deactivate Handler
+
+@enduml

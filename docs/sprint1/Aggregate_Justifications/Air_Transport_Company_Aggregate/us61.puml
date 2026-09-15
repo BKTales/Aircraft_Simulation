@@ -1,0 +1,72 @@
+@startuml US061_RegisterCollaborator
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+
+
+actor "Backoffice Operator" as Actor
+participant "CollaboratorUI"                  as UI      <<UI>>
+participant "RegisterCollaboratorController"  as Ctrl    <<Controller>>
+participant "CollaboratorService"             as Svc     <<Service>>
+database    "CompanyRepository"               as CompRepo <<Repository>>
+participant "AirTransportCompany"             as Company <<Aggregate Root>>
+participant "CompanyCollaborator"             as Colab   <<Entity>>
+
+Actor -> UI : enters collaborator data\n(email, name, position, role, companyId)
+activate UI
+
+UI -> Ctrl : registerCollaborator(email, name, position, role, companyId)
+activate Ctrl
+
+    Ctrl -> Svc : registerCollaborator(email, name, position, role, companyId)
+    activate Svc
+
+        Svc -> CompRepo : findById(companyId)
+        activate CompRepo
+        CompRepo --> Svc : company
+        deactivate CompRepo
+
+        alt company == null
+            Svc --> Ctrl : error("Company not found")
+        else
+
+            Svc -> Company : hasCollaboratorWithEmail(email)
+            activate Company
+            Company --> Svc : exists
+            deactivate Company
+
+            alt exists == true
+                Svc --> Ctrl : error("Collaborator with this email already exists")
+            else
+
+                Svc -> Company : addCollaborator(email, name, position, role)
+                activate Company
+                    Company -> Colab : new(email, name, position, role, status=ACTIVE)
+                    Company -> Company : collaborators.add(newColab)
+                Company --> Svc : updated
+                deactivate Company
+
+                Svc -> CompRepo : save(company)
+                activate CompRepo
+                CompRepo --> Svc : saved
+                deactivate CompRepo
+
+                Svc --> Ctrl : success
+            end
+        end
+
+    deactivate Svc
+
+    alt success
+        Ctrl --> UI : Collaborator Registered Successfully
+        UI --> Actor : show success screen
+    else error
+        Ctrl --> UI : Error message
+        UI --> Actor : show error details
+    end
+
+deactivate Ctrl
+deactivate UI
+@enduml

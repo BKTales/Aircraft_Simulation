@@ -1,0 +1,70 @@
+@startuml us044-login-sd
+
+autonumber
+
+actor "RemoteUser" as USER
+participant "RemoteClientApp" as CLIENT
+participant "ClientHandler" as HANDLER
+participant "LoginCredentialsParser" as PARSER
+participant "AuthenticationCredentialHandler" as AUTH
+participant "AuthzRegistry" as AZ
+participant "AtccCommandHandler" as ATCC
+participant "PilotCommandHandler" as PH
+participant "WeatherCommandHandler" as WH
+
+USER -> CLIENT : choose profile (1=ATCC, 2=Pilot, 3=Weather)
+USER -> CLIENT : username + password
+CLIENT -> HANDLER : LOGIN (10)\nusername;password;WEATHER
+activate HANDLER
+
+HANDLER -> PARSER : parse(credentials)
+PARSER --> HANDLER : ParsedLogin(user, pass, WEATHER_PERSON)
+
+HANDLER -> AUTH : authenticate(user, pass, WEATHER_PERSON)
+AUTH -> AZ : authenticate(..., WEATHER_PERSON)
+alt credentials valid for Weather Person
+    AZ --> AUTH : session present
+    AUTH --> HANDLER : true
+    HANDLER -> HANDLER : sessionRole = WEATHER_PERSON
+    HANDLER --> CLIENT : SUCCESS_LOGIN (11)
+else invalid
+    AUTH --> HANDLER : false
+    HANDLER --> CLIENT : FAILED_LOGIN (-11)
+end
+deactivate HANDLER
+
+== Command dispatch (authenticated) ==
+
+CLIENT -> HANDLER : business opcode
+activate HANDLER
+
+alt not authenticated
+    HANDLER --> CLIENT : UNAUTHORIZED (-20)
+else opcode 20-39
+    alt sessionRole == ATCC
+        HANDLER -> ATCC : handle(opcode, payload)
+        ATCC --> CLIENT : OK / error
+    else
+        HANDLER --> CLIENT : FORBIDDEN (-21)
+    end
+else opcode 40-49
+    alt sessionRole == PILOT
+        HANDLER -> PH : handle(opcode, payload)
+        PH --> CLIENT : OK / error
+    else
+        HANDLER --> CLIENT : FORBIDDEN (-21)
+    end
+else opcode 50-59
+    alt sessionRole == WEATHER_PERSON
+        HANDLER -> WH : handle(opcode, payload)
+        WH --> CLIENT : OK / error
+    else
+        HANDLER --> CLIENT : FORBIDDEN (-21)
+    end
+else unknown opcode
+    HANDLER --> CLIENT : BAD_REQUEST (-22)
+end
+
+deactivate HANDLER
+
+@enduml

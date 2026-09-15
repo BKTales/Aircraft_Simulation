@@ -1,0 +1,51 @@
+@startuml us121-components
+
+skinparam componentStyle rectangle
+skinparam linetype ortho
+
+title US121 — Import flight plan (layers)
+
+package "Presentation" {
+  [ImportFlightPlanFromFileUI] <<UI>>
+  [ImportFlightPlanFromFileController] <<Controller>>
+}
+
+package "Import file (US121)" {
+  interface "FlightPlanFileImportStrategy" as StrategyIF
+  [FlightPlanFileImportStrategyFactory] <<Factory>>
+  [TxtFlightPlanFileImportStrategy] <<Strategy>>
+  [DslFlightPlanFileImportStrategy] <<Strategy>>
+  [ExtensionlessFlightPlanFileImportStrategy] <<Strategy>>
+}
+
+package "US120 DSL" {
+  [FlightDslParser] <<ANTLR>>
+}
+
+package "Application" {
+  [ImportFlightPlanService] <<Service>>
+  [FlightPlanDescriptorMapper] <<Mapper>>
+  [FlightPlanJsonExporter] <<Exporter>>
+}
+
+package "Infrastructure" {
+  database "FlightRepository" as FlightRepo
+  database "AircraftRepository" as AircraftRepo
+}
+
+[ImportFlightPlanFromFileUI] --> [ImportFlightPlanFromFileController]
+[ImportFlightPlanFromFileController] --> [FlightPlanFileImportStrategyFactory]
+[FlightPlanFileImportStrategyFactory] ..> StrategyIF : selects
+[TxtFlightPlanFileImportStrategy] ..|> StrategyIF
+[DslFlightPlanFileImportStrategy] ..|> StrategyIF
+[ExtensionlessFlightPlanFileImportStrategy] ..|> StrategyIF
+[TxtFlightPlanFileImportStrategy] --> [FlightDslParser]
+[DslFlightPlanFileImportStrategy] --> [FlightDslParser]
+[ExtensionlessFlightPlanFileImportStrategy] --> [FlightDslParser]
+[ImportFlightPlanFromFileController] --> [ImportFlightPlanService]
+[ImportFlightPlanService] --> [FlightPlanDescriptorMapper]
+[ImportFlightPlanService] --> [FlightPlanJsonExporter]
+[ImportFlightPlanService] --> FlightRepo
+[ImportFlightPlanService] --> AircraftRepo
+
+@enduml

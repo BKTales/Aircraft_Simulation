@@ -1,0 +1,74 @@
+@startuml
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam maxMessageSize 220
+
+actor "Backoffice Operator" as Operator
+participant "AircraftModelUI" as UI <<UI>>
+participant "RegisterAircraftModelController" as Ctrl <<Controler>>
+participant "AircraftModelApplicationService" as AppSvc <<Service>>
+database "ManufacturerRepository" as MfgRepo <<Repository>>
+database "EngineModelRepository" as EngRepo <<Repository>>
+database "AircraftModelRepository" as Repo <<Repository>>
+participant "AircraftModelFactory" as Factory <<Factory>>
+participant "AircraftModel" as AR <<Aggregate Root>>
+
+Operator -> UI : selects "Register Aircraft Model"
+activate UI
+UI --> Operator : requests data (serviceCeiling, cruiseSpeed, fuelCapacity, maxRange, manufacturerId, engineModelIdList, name, mtow, mzfw, empetyWeight, cd0, cl, wingArea, wingSpan, motorization, aircraftType)
+Operator -> UI : enters requested data
+UI -> Ctrl : registerAircraftModel(serviceCeiling, cruiseSpeed, fuelCapacity, maxRange, manufacturerId, engineModelIdList, name, mtow, mzfw, empetyWeight, cd0, cl, wingArea, wingSpan, motorization, aircrafType)
+activate Ctrl
+
+    Ctrl -> AppSvc : registerAircraftModel(serviceCeiling, cruiseSpeed,...)
+
+        AppSvc -> MfgRepo : existsById(manufacturerId)
+        MfgRepo --> AppSvc : exists (boolean)
+
+        alt manufacturer does not exist
+            AppSvc --> Ctrl : error("Manufacturer not found")
+        else manufacturer exists
+
+            AppSvc -> EngRepo : existAll(engineModelIdList)
+            EngRepo --> AppSvc : exist (boolean)
+
+            alt engine models do not exist
+                AppSvc --> Ctrl : error("Invalid Engines")
+            else engines are valid
+
+                AppSvc -> Repo : existsByNameAndManufacturer(name, manufacturerId)
+                Repo --> AppSvc : existsByNameAndManufacturer(boolean)
+
+                alt combination already exists
+                    AppSvc --> Ctrl : error("This combination already exists")
+                else combination don't exists
+
+                    AppSvc -> Factory : createAircraftModel(serviceCeiling, cruiseSpeed,...)
+                    activate Factory
+                        Factory -> AR  : create(serviceCeiling, cruiseSpeed,...)
+                        Factory --> AppSvc : newAircraftModel
+                    deactivate Factory
+
+                    AppSvc -> Repo : save(newAircraftModel)
+                    AppSvc --> Ctrl : success
+                end
+            end
+        end
+    deactivate AppSvc
+
+    alt success
+        Ctrl --> UI : Aircraft Model Created
+    else error
+        Ctrl --> UI : Registration Failed (Conflict/Not Found)
+    end
+    deactivate Ctrl
+
+    alt success
+        UI --> Operator : display success message
+    else error
+        UI --> Operator : display error message
+    end
+deactivate UI
+@enduml

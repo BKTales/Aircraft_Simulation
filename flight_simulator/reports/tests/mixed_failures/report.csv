@@ -1,0 +1,27 @@
+metric,value
+flights_reported,6
+flights_success,0
+execution_failures,6
+collision_events,1
+collision_flights,2
+collision_flight_ids,100002;100001
+safety_violation_events,1
+simulator_failure_count,3
+simulator_failure_threshold,3
+validation_result,FAIL
+
+collision_flights
+flight_id,departure,arrival,execution_status,step,elapsed_s,latitude_deg,longitude_deg,altitude_m,speed_kt,speed_ms,fuel_total_kg,fuel_used_kg,fuel_remaining_kg
+100002,OPO,MAD,COLLISION,1376,1376,41.276438,-6.210311,9247.95,423.47,217.85,145751.83,131520.64,14231.19
+100001,MAD,OPO,COLLISION,1376,1376,41.276454,-6.154442,9247.82,423.47,217.85,145751.83,131424.53,14327.30
+
+flight_id,departure,arrival,execution_status,step,departure_utc,last_update_utc,real_duration,planned_arrival_utc,planned_duration,latitude_deg,longitude_deg,altitude_m,speed_kt,speed_ms,fuel_total_kg,fuel_used_kg,fuel_remaining_kg
+345678,STN,FCO,OUT OF FUEL,139,01/01 00:00:00,01/01 00:02:19,00h 02m 19s,01/01 00:00:00,00h 00m 00s,51.715799,0.505207,3391.31,393.88,202.63,145751.83,145751.83,0.00
+100002,OPO,MAD,COLLISION,1376,01/01 00:00:00,01/01 00:22:56,00h 22m 56s,01/01 00:22:56,00h 22m 56s,41.276438,-6.210311,9247.95,423.47,217.85,145751.83,131520.64,14231.19
+100001,MAD,OPO,COLLISION,1376,01/01 00:00:00,01/01 00:22:56,00h 22m 56s,01/01 00:22:56,00h 22m 56s,41.276454,-6.154442,9247.82,423.47,217.85,145751.83,131424.53,14327.30
+888001,LIS,BCN,ABORTED,1376,01/01 00:00:00,01/01 00:22:56,00h 22m 56s,01/01 00:00:00,00h 00m 00s,39.800000,-7.200000,0.00,350.17,180.14,320000.00,27596.69,292403.31
+0,LIS-W,EAST-ES,ABORTED,0,02/06 10:00:00,02/06 10:00:00,00h 00m 00s,02/06 12:00:00,02h 00m 00s,0.000000,0.000000,0.00,0.00,0.00,320000.00,320000.00,0.00
+0,MAD,EAST,ABORTED,0,02/06 10:00:00,02/06 10:00:00,00h 00m 00s,02/06 11:00:00,01h 00m 00s,0.000000,0.000000,0.00,0.00,0.00,320000.00,320000.00,0.00
+
+flight_id_a,flight_id_b,violation_type,step,elapsed_s,separation_m,alt_sep_m,lat_a_deg,lon_a_deg,alt_a_m,speed_kt_a,speed_ms_a,lat_b_deg,lon_b_deg,alt_b_m,speed_kt_b,speed_ms_b
+100002,100001,COLLISION,1376,1376,4668.79,0.13,41.276438,-6.210311,9247.95,423.47,217.85,41.276454,-6.154442,9247.82,423.47,217.85

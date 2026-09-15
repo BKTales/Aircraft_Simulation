@@ -1,0 +1,61 @@
+@startuml
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+skinparam maxMessageSize 220
+
+actor "Backoffice Operator" as Operator
+participant "CompanyUI" as UI <<UI>>
+participant "RegisterCompanyController" as Ctrl <<Controller>>
+participant "CompanyApplicationService" as AppSvc <<Service>>
+database "CompanyRepository" as Repo <<Repository>>
+participant "CompanyFactory" as Factory <<Factory>>
+participant "AirTransportCompany" as Company <<Aggregate Root>>
+
+Operator -> UI : selects "Register New Company"
+activate UI
+UI --> Operator : requests company data (name, iata, icao)
+Operator -> UI : enters requested data
+UI -> Ctrl : registerCompany(name,iata,icao)
+activate Ctrl
+
+    Ctrl -> AppSvc : registerCompany(name,iata,icao)
+    activate AppSvc
+        
+        
+        AppSvc -> Repo : existsByNameIataOrIcao(name, iata, icao)
+        Repo --> AppSvc : exists (boolean)
+        
+        alt exists == false
+
+            AppSvc -> Factory : createCompany(name, iata, icao)
+            activate Factory
+                Factory -> Company : new(name, iata, icao)
+                Factory --> AppSvc : newCompany
+            deactivate Factory
+            
+            AppSvc -> Repo : save(newCompany)
+            AppSvc --> Ctrl : success
+        else exists == true
+            AppSvc --> Ctrl : error("Data already exists")
+        end
+        
+    deactivate AppSvc
+
+    alt success
+        Ctrl --> UI : Company Created
+        UI --> Operator : display success message
+    else error
+        Ctrl --> UI : Registration failed (Conflict)
+        UI --> Operator : display error message
+    end
+
+
+deactivate Ctrl
+deactivate UI
+@enduml
+
+
+

@@ -1,0 +1,255 @@
+{
+  "ID": 345678,
+  "Type": "cargo",
+  "Route": "FR789",
+  "AircraftId": "777-200ER",
+  "Mass": 240000,
+  "DepartureTime": "22:15",
+  "Leg": [
+    {
+      "Departure": {
+        "Airport": "STN",
+        "AreaCode": "PT-N"
+      },
+      "Arrival": {
+        "Airport": "FCO",
+        "AreaCode": "PT-N"
+      },
+      "Fuel": {
+        "Quantity": 1000,
+        "Unit": "kg"
+      },
+      "Flight Profile": {
+        "Climb": [
+          {
+            "Altitude": {
+              "Value": 0,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 195,
+              "Unit": "Knots"
+            },
+            "RateClimb": {
+              "Value": 13.0,
+              "Unit": "m/s"
+            }
+          },
+          {
+            "Altitude": {
+              "Value": 5000,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 255,
+              "Unit": "Knots"
+            },
+            "RateClimb": {
+              "Value": 10.0,
+              "Unit": "m/s"
+            }
+          },
+          {
+            "Altitude": {
+              "Value": 11800,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 305,
+              "Unit": "Knots"
+            },
+            "RateClimb": {
+              "Value": 5.0,
+              "Unit": "m/s"
+            }
+          }
+        ],
+        "Descend": [
+          {
+            "Altitude": {
+              "Value": 0,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 150,
+              "Unit": "Knots"
+            },
+            "RateDescent": {
+              "Value": -5,
+              "Unit": "m/s"
+            }
+          },
+          {
+            "Altitude": {
+              "Value": 5000,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 275,
+              "Unit": "Knots"
+            },
+            "RateDescent": {
+              "Value": -12,
+              "Unit": "m/s"
+            }
+          },
+          {
+            "Altitude": {
+              "Value": 11800,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 305,
+              "Unit": "Knots"
+            },
+            "RateDescent": {
+              "Value": -12,
+              "Unit": "m/s"
+            }
+          }
+        ],
+        "Cruise": {
+          "Speed": {
+            "Value": 480,
+            "Unit": "Knots"
+          }
+        }
+      },
+      "Segments": [
+        {
+          "Mode": "climb",
+          "Start": {
+            "Latitude": 51.885,
+            "Longitude": 0.235,
+            "Altitude": {
+              "Quantity": 35,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 51.92,
+            "Longitude": 0.32,
+            "Altitude": {
+              "Quantity": 11800,
+              "Unit": "m"
+            }
+          }
+        },
+        {
+          "Mode": "cruise",
+          "Start": {
+            "Latitude": 51.92,
+            "Longitude": 0.32,
+            "Altitude": {
+              "Quantity": 11800,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 41.82,
+            "Longitude": 12.2,
+            "Altitude": {
+              "Quantity": 11800,
+              "Unit": "m"
+            }
+          }
+        },
+        {
+          "Mode": "descend",
+          "Start": {
+            "Latitude": 41.82,
+            "Longitude": 12.2,
+            "Altitude": {
+              "Quantity": 11800,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 41.8044,
+            "Longitude": 12.2508,
+            "Altitude": {
+              "Quantity": 4,
+              "Unit": "m"
+            }
+          }
+        }
+      ],
+      "DepartureAirport": {
+        "Id": "STN",
+        "Icao": "STN",
+        "Name": "London Stansted Airport",
+        "Town": "London",
+        "Country": "United Kingdom",
+        "Latitude": 51.885,
+        "Longitude": 0.235,
+        "Altitude": 35.0
+      },
+      "ArrivalAirport": {
+        "Id": "FCO",
+        "Icao": "FCO",
+        "Name": "Leonardo Da Vinci (Fiumicino) International Airport",
+        "Town": "Rome",
+        "Country": "Italy",
+        "Latitude": 41.8044444,
+        "Longitude": 12.2508333,
+        "Altitude": 5.0
+      }
+    }
+  ],
+  "Aircraft": {
+    "ModelId": "777-200ER",
+    "Description": "Boeing 777-200ER",
+    "Maker": "Boeing",
+    "Type": "passenger",
+    "NumberMotors": 2,
+    "Motor": "GE 90B",
+    "MotorType": "turbofan",
+    "CruiseAltitude": 13136.880000000001,
+    "CruiseSpeed": 0.84,
+    "TSFC": 1.6315459407646855e-05,
+    "LapseRateFactor": 0.7,
+    "Thrust0": 489000.0,
+    "ThrustMaxSpeed": 300000.0,
+    "MaxSpeed": 1.0,
+    "EWeight": 145149.5584,
+    "MTOW": 347451.75542,
+    "MaxPayload": 60327.78521,
+    "FuelCapacity": 145751.82974995105,
+    "VMO": 180.0555554,
+    "MMO": 0.89,
+    "WingArea": 440.0,
+    "WingSpan": 60.93,
+    "AspectRatio": 9.0,
+    "E": 0.87,
+    "CdragFunction": [
+      {
+        "Speed": 0.0,
+        "Cdrag0": 0.017
+      },
+      {
+        "Speed": 0.75,
+        "Cdrag0": 0.017
+      },
+      {
+        "Speed": 0.8,
+        "Cdrag0": 0.0185
+      },
+      {
+        "Speed": 0.85,
+        "Cdrag0": 0.021
+      },
+      {
+        "Speed": 0.9,
+        "Cdrag0": 0.024
+      },
+      {
+        "Speed": 0.95,
+        "Cdrag0": 0.034
+      },
+      {
+        "Speed": 1.0,
+        "Cdrag0": 0.06
+      }
+    ]
+  }
+}

@@ -1,0 +1,69 @@
+@startuml us086-login-sd
+
+autonumber
+title US086 - Login and opcode dispatch (Pilot / ATCC)
+
+actor "RemoteUser" as USER
+participant "RemoteClientApp" as CLIENT
+participant "ClientHandler" as HANDLER
+participant "AuthenticationCredentialHandler" as AUTH
+participant "AuthzRegistry" as AZ
+participant "AtccCommandHandler" as ATCC
+participant "PilotCommandHandler" as PH
+
+USER -> CLIENT : username + password
+CLIENT -> HANDLER : LOGIN (10)\nusername;password
+activate HANDLER
+
+HANDLER -> AUTH : authenticated(user, pass, ATCC)
+AUTH -> AZ : authenticate(..., ATCC)
+alt credentials valid for ATCC
+    AZ --> AUTH : session present
+    AUTH --> HANDLER : true
+    HANDLER -> HANDLER : sessionRole = ATCC
+    HANDLER --> CLIENT : SUCCESS_LOGIN (11)
+else ATCC failed
+    AUTH --> HANDLER : false
+    HANDLER -> AZ : clearSession()
+    HANDLER -> AUTH : authenticated(user, pass, PILOT)
+    AUTH -> AZ : authenticate(..., PILOT)
+    alt credentials valid for PILOT
+        AZ --> AUTH : session present
+        AUTH --> HANDLER : true
+        HANDLER -> HANDLER : sessionRole = PILOT
+        HANDLER --> CLIENT : SUCCESS_LOGIN (11)
+    else both failed
+        AUTH --> HANDLER : false
+        HANDLER --> CLIENT : FAILED_LOGIN (-11)
+    end
+end
+deactivate HANDLER
+
+== Command dispatch (authenticated) ==
+
+CLIENT -> HANDLER : business opcode
+activate HANDLER
+
+alt not authenticated
+    HANDLER --> CLIENT : UNAUTHORIZED (-20)
+else opcode 20-39
+    alt sessionRole == ATCC
+        HANDLER -> ATCC : handle(opcode, payload)
+        ATCC --> CLIENT : OK / error
+    else sessionRole == PILOT
+        HANDLER --> CLIENT : FORBIDDEN (-21)\nATCC opcodes require ATCC role
+    end
+else opcode 40-59
+    alt sessionRole == PILOT
+        HANDLER -> PH : handle(opcode, payload)
+        PH --> CLIENT : OK / error
+    else sessionRole == ATCC
+        HANDLER --> CLIENT : FORBIDDEN (-21)\nPilot opcodes require PILOT role
+    end
+else unknown opcode
+    HANDLER --> CLIENT : BAD_REQUEST (-22)
+end
+
+deactivate HANDLER
+
+@enduml

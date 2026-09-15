@@ -1,0 +1,71 @@
+@startuml
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam maxMessageSize 250
+
+actor "Company Collaborator" as Actor
+participant "AircraftUI" as UI <<UI>>
+participant "RegisterAircraftController" as Ctrl <<Controller>>
+participant "AircraftService" as Svc <<Service>>
+participant "AircraftFactory" as Factory <<Factory>>
+database "AircraftModelRepository" as ModelRepo <<Repository>>
+database "AircraftRepository" as AircraftRepo <<Repository>>
+participant "Aircraft" as Aircraft <<Aggregate Root>>
+
+Actor -> UI : enters aircraft details (registration, modelId, engineModelId, seats, country)
+activate UI
+
+UI -> Ctrl : registerAircraft(registration, modelId, engineModelId, seats, country)
+activate Ctrl
+
+    Ctrl -> Svc : registerAircraft(registration, modelId, engineModelId, seats, country, sessionCompanyId)
+    activate Svc
+
+        Svc -> AircraftRepo : existsByRegistration(registration)
+        activate AircraftRepo
+        AircraftRepo --> Svc : exists(boolean)
+        deactivate AircraftRepo
+
+        alt exists == false
+            Svc -> ModelRepo : findById(modelId)
+            activate ModelRepo
+            ModelRepo --> Svc : theModel
+            deactivate ModelRepo
+
+            alt theModel != null
+
+                Svc -> Factory : createAircraft(registration, theModel, engineModelId, seats, country, sessionCompanyId)
+                activate Factory
+
+                    Factory -> Factory : validateSeats(seats, theModel.maxCapacity)
+                    Factory -> Factory : validateEngine(engineModelId, theModel)
+                    Factory -> Aircraft : new(registration, theModel.id(), engineModelId, seats, country, sessionCompanyId)
+
+                    Factory --> Svc : newAircraft
+                deactivate Factory
+
+                Svc -> AircraftRepo : save(newAircraft)
+                activate AircraftRepo
+                AircraftRepo --> Svc : success
+                deactivate AircraftRepo
+
+                Svc --> Ctrl : success
+            else theModel == null
+                Svc --> Ctrl : error("Invalid Aircraft Model")
+            end
+        else exists == true
+            Svc --> Ctrl : error("Registration already exists")
+        end
+
+    deactivate Svc
+
+    alt success
+       Ctrl --> UI : Aircraft registered successfully
+    else error
+       Ctrl --> UI : Registration failed
+    end
+deactivate Ctrl
+deactivate UI
+@enduml

@@ -1,0 +1,134 @@
+@startuml US075_Branch1_CreateNewUserWithPilot
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+skinparam maxMessageSize 220
+
+title US075 - Branch 1: Create New Pilot Collaborator (New User + Certifications)
+
+actor "Backoffice Operator" as Operator
+participant "AddPilotCollaboratorUserUI" as UI <<UI>>
+participant "AddPilotCollaboratorController" as Ctrl <<Controller>>
+participant "PilotCollaboratorUserService" as Svc <<Service>>
+participant "UserBuilderHelper" as UBH <<Helper>>
+participant "SystemUserBuilder" as SysUserBld <<Builder>>
+participant "SystemUser" as SysUser <<Entity>>
+participant "PilotUserBuilder" as PilotBld <<Builder>>
+participant "PilotUser" as PilotUser <<Entity>>
+participant "PilotCertification" as Cert <<Entity>>
+database "AircraftModelRepository" as AircraftRepo <<Repository>>
+database "UserRepository" as UserRepo <<Repository>>
+database "PilotUserRepository" as PilotRepo <<Repository>>
+
+Operator -> UI : selects "Add New Pilot"
+activate UI
+
+UI --> Operator : requests user data\n(username, password, firstName, lastName,\nemail, security clearance date,\nphone number, certifications)
+Operator -> UI : enters user data + certifications
+
+UI -> Ctrl : addUser(dto)
+activate Ctrl
+
+Ctrl -> Ctrl : company = currentCompany()
+
+Ctrl -> Svc : createPilotUser(username, password,\nfirstName, lastName, email, roles,\ncreatedOn, company, securityData,\nphoneNumber, certifications, ...)
+activate Svc
+
+group Transactional Context [txCtx.beginTransaction()]
+
+    note over Svc : registerNewUser(...)
+
+    Svc -> UBH : builder()
+    activate UBH
+    UBH --> Svc : userBuilder: SystemUserBuilder
+    deactivate UBH
+
+    Svc -> SysUserBld : with(username, password,\nfirstName, lastName, email)
+    activate SysUserBld
+    SysUserBld --> Svc : self
+    deactivate SysUserBld
+
+    Svc -> SysUserBld : createdOn(createdOn)
+    activate SysUserBld
+    SysUserBld --> Svc : self
+    deactivate SysUserBld
+
+    Svc -> SysUserBld : withRoles(roles)
+    activate SysUserBld
+    SysUserBld --> Svc : self
+    deactivate SysUserBld
+
+    Svc -> SysUserBld : build()
+    activate SysUserBld
+    create SysUser
+    SysUserBld -> SysUser : <<create>>
+    SysUserBld --> Svc : newUser: SystemUser
+    deactivate SysUserBld
+
+    Svc -> UserRepo : save(newUser)
+    activate UserRepo
+    UserRepo --> Svc : savedUser: SystemUser
+    deactivate UserRepo
+
+    note over Svc : createPilotCollaboratorUser(...)
+
+    Svc -> PilotBld : new PilotUserBuilder()
+    activate PilotBld
+
+    Svc -> PilotBld : withSystemUser(savedUser)
+    PilotBld --> Svc : self
+
+    Svc -> PilotBld : withAirTransportCompany(company)
+    PilotBld --> Svc : self
+
+    Svc -> PilotBld : withPhoneNumber(phoneNumber)
+    PilotBld --> Svc : self
+
+    Svc -> PilotBld : withSecurityData(securityData)
+    PilotBld --> Svc : self
+
+    loop for each PilotCertificationSpec
+
+        Svc -> AircraftRepo : ofIdentity(AircraftModelId)
+        activate AircraftRepo
+        AircraftRepo --> Svc : aircraftModel: AircraftModel
+        deactivate AircraftRepo
+
+        create Cert
+        Svc -> Cert : new PilotCertification(aircraftModel, dueDate)
+        activate Cert
+        Cert --> Svc : certification
+        deactivate Cert
+
+        Svc -> PilotBld : withCertification(certification)
+        PilotBld --> Svc : self
+
+    end
+
+    Svc -> PilotBld : build()
+    create PilotUser
+    PilotBld -> PilotUser : <<create>>
+    PilotBld --> Svc : pilot: PilotUser
+    deactivate PilotBld
+
+    Svc -> PilotRepo : save(pilot)
+    activate PilotRepo
+    PilotRepo --> Svc : savedPilot: PilotUser
+    deactivate PilotRepo
+
+    note over Svc : txCtx.commit()
+
+end
+
+Svc --> Ctrl : AddPilotResult.success()
+deactivate Svc
+
+Ctrl --> UI : AddPilotResult (success)
+deactivate Ctrl
+
+UI --> Operator : displays success message
+deactivate UI
+
+@enduml

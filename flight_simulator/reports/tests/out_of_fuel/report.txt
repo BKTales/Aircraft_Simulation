@@ -1,0 +1,38 @@
+================================================================================
+                    AISafe FLIGHT SIMULATION REPORT
+================================================================================
+ Generated at       : 2026-06-14 14:59:16
+ Tick interval (s)  : 1
+================================================================================
+
+FLIGHT EXECUTION RECORDS
+--------------------------------------------------------------------------------
+
+[Flight 000]  Flight ID 345678
+  Route              : STN -> FCO
+  Execution status   : OUT OF FUEL
+  Simulation step    : 195
+  Departure          : 01/01 00:00:00 UTC
+  Last update at     : 01/01 00:03:15 UTC  (00h 03m 15s)
+  Planned arrival    : 01/01 00:00:00 UTC  (00h 00m 00s)
+  Position           : lat +51.92000 deg, lon +0.32000 deg, alt 4456.32 m
+  Velocity (scalar)  : 409.09 kt (210.45 m/s ground speed)
+  Fuel total         : 145751.83 kg
+  Fuel used          : 145751.83 kg
+  Fuel remaining     : 0.00 kg
+--------------------------------------------------------------------------------
+
+================================================================================
+ VALIDATION SUMMARY
+================================================================================
+ Flights reported             : 1
+ Flights completed (SUCCESS)  : 0
+ Execution failures           : 1
+ Collision events             : 0
+ Flights with COLLISION status: 0
+ Safety violation events      : 0
+ Failure counter (simulator)  : 1  (threshold 3)
+--------------------------------------------------------------------------------
+ FINAL VALIDATION RESULT      : PASS
+================================================================================
+

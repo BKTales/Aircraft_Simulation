@@ -1,0 +1,81 @@
+@startuml us086-sd
+
+autonumber
+
+actor "Pilot" as PILOT
+
+participant "PilotRemoteClientApp" as CLIENT <<TCP Client>>
+participant "vsgate DEI" as GATE
+participant "ClientHandler" as HANDLER <<Server>>
+participant "PilotCommandHandler" as PH <<Server>>
+participant "ImportFlightPlanFromFileController" as IMP <<Controller>>
+participant "InsertWeatherInFlightController" as WTH <<Controller>>
+participant "ValidateFlightPlanController" as VAL <<Controller>>
+database "PostgreSQL" as DB
+
+PILOT -> CLIENT : start client
+CLIENT -> GATE : TCP connect
+GATE -> HANDLER : forward to RcompTcpServer
+
+CLIENT -> HANDLER : LOGIN (opcode 10)\npayload: pilot1;password123
+activate HANDLER
+HANDLER -> HANDLER : authenticate(..., PILOT)
+HANDLER --> CLIENT : SUCCESS_LOGIN (opcode 11)
+deactivate HANDLER
+
+== Import flight plan (US121) ==
+
+PILOT -> CLIENT : select import from file
+CLIENT -> HANDLER : PARSE_FLIGHT_PLAN_FILE (41)\nfilePath
+HANDLER -> PH : handle(41, payload)
+activate PH
+PH -> IMP : parseFile(path)
+IMP -> DB : read / validate DSL
+IMP --> PH : ParseResult
+PH --> CLIENT : OK + validation result
+deactivate PH
+
+CLIENT -> HANDLER : LIST_AIRCRAFT (43)
+HANDLER -> PH : handle(43)
+PH -> IMP : activeAircraftRegistrations()
+IMP --> PH : registrations
+PH --> CLIENT : OK + list
+
+CLIENT -> HANDLER : IMPORT_FLIGHT_PLAN (42)\nfilePath;registration
+HANDLER -> PH : handle(42)
+PH -> IMP : importValidPlan(path, registration)
+IMP -> DB : save Flight + FlightPlan
+IMP --> PH : ImportFlightPlanResult
+PH --> CLIENT : OK + designator DRAFT
+
+== Attach weather (US082) ==
+
+PILOT -> CLIENT : attach weather
+CLIENT -> HANDLER : ATTACH_WEATHER (44)\nTP1234;42
+HANDLER -> PH : handle(44)
+PH -> WTH : attachWeatherToFlight(designator, weatherId)
+WTH -> DB : load Flight, WeatherData, save
+WTH --> PH : Flight (plan status DRAFT)
+PH --> CLIENT : OK
+
+== Validate flight plan (US085) ==
+
+PILOT -> CLIENT : validate plan
+CLIENT -> HANDLER : VALIDATE_FLIGHT_PLAN (45)\nTP1234
+HANDLER -> PH : handle(45)
+PH -> VAL : validateFlightPlan(designator)
+note right of VAL
+  Stub until US085 controller exists.
+  Returns NOT_IMPLEMENTED (-23) until then.
+end note
+VAL --> PH : result or NOT_IMPLEMENTED
+PH --> CLIENT : response
+
+== Logout ==
+
+PILOT -> CLIENT : logout
+CLIENT -> HANDLER : LOGOUT (opcode 12)
+HANDLER -> HANDLER : clearSession()
+HANDLER --> CLIENT : SUCCESS_LOGOUT (opcode 13)
+
+@enduml

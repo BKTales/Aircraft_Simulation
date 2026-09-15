@@ -1,0 +1,70 @@
+@startuml SD_FlightAggregate_US080
+
+title Flight Aggregate – US080: Create a flight including its flight plan
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+skinparam maxMessageSize 220
+
+actor Pilot
+participant "FlightUI\n<<UI>>" as UI
+participant "FlightController\n<<Controller>>" as FC
+database "FlightRepository\n<<Repository>>" as FR
+database "RouteRepository\n<<Repository>>" as RR
+database "AircraftRepository\n<<Repository>>" as AR
+database "PilotRepository\n<<Repository>>" as PR
+participant "Flight\n<<Entity Root>>" as F
+participant "FlightPlan\n<<Value Object>>" as FP
+
+Pilot -> UI : createFlight(routeId, aircraftId, pilotId,\ndepartureDateTime, fuelLoad, passengerCount)
+activate UI
+    UI -> FC : createFlight(routeId, aircraftId, pilotId,\ndepartureDateTime, fuelLoad, passengerCount)
+    activate FC
+        FC -> RR : findById(routeId)
+        activate RR
+            RR --> FC : Route
+        deactivate RR
+
+        FC -> AR : findById(aircraftId)
+        activate AR
+            AR --> FC : Aircraft
+        deactivate AR
+
+        FC -> PR : findById(pilotId)
+        activate PR
+            PR --> FC : Pilot
+        deactivate  PR
+
+        alt Route is active AND Aircraft is active AND Pilot belongs to Route's company
+            FC -> F : create(flightDesignator, flightType,\ndepartureDateTime, route)
+            activate F
+                F -> F : setFlightSchedule(departureDateTime)\n[charter: specific date]\n[regular: days of week]
+
+                F -> FP ** : create(aircraft, pilot, fuelLoad,\npassengerCount)
+                activate FP
+                    FP -> FP : validateInvariant()\n[aircraft not decommissioned]\n[route not deactivated]\n[pilot belongs to company]\n[fuelLoad > 0]
+                    FP -> FP : setStatus(draft)
+                FP --> F : FlightPlan created in draft
+                deactivate FP
+            F --> FC : Flight created
+            deactivate F
+            FC -> FR : save(Flight)
+            activate FR
+                FR --> FC : ok
+            deactivate FR
+
+            FC --> UI : success
+            UI --> Pilot : Flight created with FlightPlan in draft
+        else validation failed
+            FC --> UI : error
+    deactivate FC
+    UI --> Pilot : Error – Flight cannot be created
+deactivate UI
+
+end
+
+
+@enduml

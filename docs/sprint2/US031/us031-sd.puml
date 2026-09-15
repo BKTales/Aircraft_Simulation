@@ -1,0 +1,60 @@
+@startuml
+
+actor Admin
+participant AddUserUI
+participant AddUserController
+participant AddUserService
+participant EmailDomainRepository
+participant UserManagementService
+participant UserRepository
+
+Admin -> AddUserUI : start registration
+activate AddUserUI
+    AddUserUI -> Admin : request user data
+deactivate AddUserUI
+
+Admin -> AddUserUI : submit data (username, password, name, email, role)
+activate AddUserUI
+    AddUserUI -> AddUserController : addUser(username, password, firstName, lastName, email, roles)
+    activate AddUserController
+        AddUserController -> AddUserController : ensureAuthenticatedUserHasAnyOf(ADMIN)
+
+        AddUserController -> AddUserService : verifyEmailDomain(roles, email)
+        activate AddUserService
+            alt role is internal (ADMIN / BACKOFFICE_OPERATOR / WEATHER_PERSON)
+                AddUserService -> EmailDomainRepository : findByDomain(domain)
+                activate EmailDomainRepository
+                    EmailDomainRepository --> AddUserService : Optional<EmailDomain>
+                deactivate EmailDomainRepository
+                alt domain not found
+                    AddUserService --> AddUserController : throw InvalidEmailDomainException
+                end
+            else role is external (PILOT / ATCC / FCO)
+                AddUserService --> AddUserController : true (skip validation)
+            end
+        deactivate AddUserService
+
+        AddUserController -> UserManagementService : registerNewUser(username, password, firstName, lastName, email, roles, createdOn)
+        activate UserManagementService
+            UserManagementService -> UserRepository : save(user)
+            activate UserRepository
+                UserRepository --> UserManagementService : SystemUser
+            deactivate UserRepository
+            UserManagementService --> AddUserController : SystemUser
+        deactivate UserManagementService
+
+        AddUserController --> AddUserUI : SystemUser
+    deactivate AddUserController
+
+    alt success
+        AddUserUI -> Admin : show success message
+    else InvalidEmailDomainException
+        AddUserUI -> Admin : show invalid domain error
+    else InvalidSelectedRoleException
+        AddUserUI -> Admin : show no role selected error
+    else IntegrityViolationException
+        AddUserUI -> Admin : show username already in use error
+    end
+deactivate AddUserUI
+
+@enduml

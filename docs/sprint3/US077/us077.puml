@@ -1,0 +1,147 @@
+@startuml US077_DeactivatePilot
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+skinparam maxMessageSize 220
+
+title US077 - Deactivate Pilot (roster)
+
+actor "ATCC Operator" as Operator
+participant "RemovePilotCollaboratorUI" as UI <<UI>>
+participant "RemovePilotCollaboratorController" as Ctrl <<Controller>>
+participant "PilotCollaboratorUserService" as ListSvc <<Service US076>>
+participant "RemovePilotCollaboratorService" as DeactSvc <<Service US077>>
+database "PilotUserRepository" as PilotRepo <<Repository>>
+database "FlightRepository" as FlightRepo <<Repository>>
+participant "PilotUser" as Pilot <<Entity>>
+participant "ResponsePilotCollaboratorDTO" as PilotDTO <<DTO>>
+participant "SystemUser" as SysUser <<Entity>>
+participant "DeactivatePilotResult" as Result <<Result>>
+
+Operator -> UI : selects "Remove Pilot (US077)"
+activate UI
+
+UI -> Ctrl : listActivePilotsForCompany()
+activate Ctrl
+
+Ctrl -> Ctrl : currentCompany()\n(ATCC via findATCC)
+
+Ctrl -> ListSvc : findActivePilotsByCompany(pilotRepo, company)
+activate ListSvc
+
+ListSvc -> PilotRepo : findPilotByCompanyAndActive(company)
+activate PilotRepo
+PilotRepo --> ListSvc : Iterable<PilotUser>
+deactivate PilotRepo
+
+loop each PilotUser
+    ListSvc -> Pilot : toDTO()
+    activate Pilot
+    Pilot -> PilotDTO : <<create>>\nnew ResponsePilotCollaboratorDTO(\n  email, name, phone,\n  clearance dates, certCount)
+    activate PilotDTO
+    PilotDTO --> Pilot : dto
+    deactivate PilotDTO
+    Pilot --> ListSvc : ResponsePilotCollaboratorDTO
+    deactivate Pilot
+end
+
+ListSvc --> Ctrl : Iterable<ResponsePilotCollaboratorDTO>
+deactivate ListSvc
+
+Ctrl --> UI : roster DTOs
+deactivate Ctrl
+
+UI --> Operator : displays active pilots
+Operator -> UI : selects pilot (email from DTO)
+
+UI -> Ctrl : deactivatePilot(email)
+activate Ctrl
+
+Ctrl -> Ctrl : currentCompany()
+
+Ctrl -> DeactSvc : deactivatePilot(email, company, referenceTime, txCtx)
+activate DeactSvc
+
+group Transactional Context
+
+    DeactSvc -> PilotRepo : findByEmailWithLock(email)\n<<PESSIMISTIC_WRITE>>
+    activate PilotRepo
+    PilotRepo --> DeactSvc : Optional<PilotUser>
+    deactivate PilotRepo
+
+    alt pilot not found
+        DeactSvc -> Result : <<create>> DeactivatePilotResult(NOT_FOUND)
+        activate Result
+        Result --> DeactSvc : result
+        deactivate Result
+        DeactSvc --> Ctrl : result
+    else pilot.company != ATCC company
+        DeactSvc -> Result : <<create>> DeactivatePilotResult(NOT_IN_ROSTER)
+        activate Result
+        Result --> DeactSvc : result
+        deactivate Result
+        DeactSvc --> Ctrl : result
+    else systemUser already inactive
+        DeactSvc -> Result : <<create>> DeactivatePilotResult(ALREADY_INACTIVE)
+        activate Result
+        Result --> DeactSvc : result
+        deactivate Result
+        DeactSvc --> Ctrl : result
+    else
+
+        DeactSvc -> FlightRepo : existsActiveFlightForPilot(pilot.systemUser, referenceTime)
+        activate FlightRepo
+        FlightRepo --> DeactSvc : boolean
+        deactivate FlightRepo
+
+        alt has pending blocking flight plan
+            DeactSvc -> Result : <<create>> DeactivatePilotResult(HAS_ACTIVE_FLIGHTS)
+            activate Result
+            Result --> DeactSvc : result
+            deactivate Result
+            DeactSvc --> Ctrl : result
+        else
+
+            DeactSvc -> Pilot : deactivateFromRoster(now)
+            activate Pilot
+            Pilot -> SysUser : deactivate(now)
+            SysUser --> Pilot : active = false
+            deactivate Pilot
+
+            DeactSvc -> PilotRepo : save(pilot)
+            activate PilotRepo
+            PilotRepo --> DeactSvc : PilotUser
+            deactivate PilotRepo
+
+            DeactSvc -> Result : <<create>> DeactivatePilotResult(SUCCESS, pilot)
+            activate Result
+            Result --> DeactSvc : result
+            deactivate Result
+
+            DeactSvc --> Ctrl : result
+        end
+    end
+
+end
+
+Ctrl --> UI : DeactivatePilotResult
+deactivate DeactSvc
+deactivate Ctrl
+
+alt result.outcome == SUCCESS
+    UI --> Operator : "Pilot deactivated."
+else result.outcome == NOT_FOUND
+    UI --> Operator : "Pilot not found."
+else result.outcome == NOT_IN_ROSTER
+    UI --> Operator : "Pilot does not belong to your company."
+else result.outcome == ALREADY_INACTIVE
+    UI --> Operator : "Pilot is already inactive."
+else result.outcome == HAS_ACTIVE_FLIGHTS
+    UI --> Operator : "Pilot has active flight plans. Cannot deactivate."
+end
+
+deactivate UI
+
+@enduml

@@ -1,0 +1,23 @@
+#name: Java CI with Maven
+#on:
+#  push:
+#    branches: [ "main" ]
+#  pull_request:
+#    branches: [ "main" ]
+#  schedule:
+#    - cron: "0 0 * * *" # Nightly Build (NFR05)
+#jobs:
+#  build:
+#    runs-on: ubuntu-latest
+#    steps:
+#     - name: Checkout code
+#       uses: actions/checkout@v4
+#      - name: Set up JDK 17
+#        uses: actions/setup-java@v4
+#        with:
+#          distribution: temurin
+#          java-version: "17"
+#          cache: maven
+#      - name: Build and Test
+#        working-directory: aisafe.base
+#        run: mvn -B clean verify

@@ -1,0 +1,43 @@
+@startuml us120-pipeline
+
+skinparam activityShape roundBox
+skinparam ArrowColor #333333
+
+title US120 — Flight DSL processing pipeline
+
+|US121 (file import)|
+start
+:.txt → TxtFlightPlanFileImportStrategy|
+:.dsl → DslFlightPlanFileImportStrategy|
+:no extension → ExtensionlessFlightPlanFileImportStrategy|
+:Read UTF-8 file content;
+note right
+  Extension routing is US121 only.
+  US120 receives DSL text.
+end note
+
+|US120 (dsl module)|
+:FlightDslParser.parse(String)\nUTF-8 Core Flight DSL text;
+
+:FlightPlanLexer;
+
+:FlightPlanParser;
+
+if (Lexical or\nsyntactic errors?) then (yes)
+  :FlightPlanErrorListener\ncollects Line L:C messages;
+  :ParseResult.failure;
+  stop
+else (no)
+  :FlightPlanBuilder\n(visitor);
+  :FlightPlanTreeShapeListener;
+  :FlightPlanDescriptor\nvalidateSemantics();
+  if (Semantic errors?) then (yes)
+    :ParseResult.failure;
+    stop
+  else (no)
+    :ParseResult.success\n+ FlightPlanDescriptor;
+    stop
+  endif
+endif
+
+@enduml

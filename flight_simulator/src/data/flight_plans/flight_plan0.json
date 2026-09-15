@@ -1,0 +1,415 @@
+{
+  "ID": 123456,
+  "Type": "regular",
+  "Route": "OPO-LIS-MAD",
+  "AircraftId": "777-200ER",
+  "Load": {
+    "PassengerCount": 0,
+    "PassengerWeight": {
+      "Quantity": 0,
+      "Unit": "kg"
+    },
+    "CargoWeight": {
+      "Quantity": 0,
+      "Unit": "kg"
+    },
+    "TotalPayloadMassKg": 0
+  },
+  "Legs": [
+    {
+      "Departure": "OPO",
+      "Arrival": "LIS",
+      "DepartureTime": "2026-06-02 23:50",
+      "ArrivalTime": "2026-06-03 00:40",
+      "Fuel": {
+        "Quantity": 15000,
+        "Unit": "kg"
+      },
+      "FlightProfile": {
+        "Climb": [
+          {
+            "Altitude": 0,
+            "IAS": 200
+          },
+          {
+            "Altitude": 1000,
+            "IAS": 210
+          },
+          {
+            "Altitude": 2000,
+            "IAS": 220
+          },
+          {
+            "Altitude": 3000,
+            "IAS": 230
+          },
+          {
+            "Altitude": 4000,
+            "IAS": 245
+          },
+          {
+            "Altitude": 5000,
+            "IAS": 255
+          },
+          {
+            "Altitude": 6000,
+            "IAS": 265
+          },
+          {
+            "Altitude": 7000,
+            "IAS": 275
+          },
+          {
+            "Altitude": 8000,
+            "IAS": 285
+          }
+        ],
+        "Descend": [
+          {
+            "Altitude": 0,
+            "IAS": 145
+          },
+          {
+            "Altitude": 1000,
+            "IAS": 170
+          },
+          {
+            "Altitude": 2000,
+            "IAS": 200
+          },
+          {
+            "Altitude": 3000,
+            "IAS": 230
+          },
+          {
+            "Altitude": 4000,
+            "IAS": 260
+          },
+          {
+            "Altitude": 5000,
+            "IAS": 280
+          },
+          {
+            "Altitude": 6000,
+            "IAS": 285
+          },
+          {
+            "Altitude": 7000,
+            "IAS": 290
+          },
+          {
+            "Altitude": 8000,
+            "IAS": 295
+          }
+        ]
+      },
+      "Segments": [
+        {
+          "Mode": "climb",
+          "Start": {
+            "Latitude": 41.2481003,
+            "Longitude": -8.6813898,
+            "Altitude": {
+              "Quantity": 69,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 40.0,
+            "Longitude": -8.9,
+            "Altitude": {
+              "Quantity": 8000,
+              "Unit": "m"
+            }
+          }
+        },
+        {
+          "Mode": "descend",
+          "Start": {
+            "Latitude": 40.0,
+            "Longitude": -8.9,
+            "Altitude": {
+              "Quantity": 8000,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 38.7812996,
+            "Longitude": -9.1359196,
+            "Altitude": {
+              "Quantity": 114,
+              "Unit": "m"
+            }
+          }
+        }
+      ],
+      "DepartureAirport": {
+        "Id": "OPO",
+        "Icao": "OPO",
+        "Name": "Francisco de S\u00e1 Carneiro Airport",
+        "Town": "Porto",
+        "Country": "Portugal",
+        "Latitude": 41.2481003,
+        "Longitude": -8.6813898,
+        "Altitude": 69.0
+      },
+      "ArrivalAirport": {
+        "Id": "LIS",
+        "Icao": "LIS",
+        "Name": "Humberto Delgado Airport",
+        "Town": "Lisbon",
+        "Country": "Portugal",
+        "Latitude": 38.7812996,
+        "Longitude": -9.1359196,
+        "Altitude": 114.0
+      }
+    },
+    {
+      "Departure": "LIS",
+      "Arrival": "MAD",
+      "DepartureTime": "2026-06-03 01:25",
+      "ArrivalTime": "2026-06-03 02:35",
+      "Fuel": {
+        "Quantity": 18000,
+        "Unit": "kg"
+      },
+      "FlightProfile": {
+        "Climb": [
+          {
+            "Altitude": 0,
+            "IAS": 200
+          },
+          {
+            "Altitude": 1000,
+            "IAS": 210
+          },
+          {
+            "Altitude": 2000,
+            "IAS": 220
+          },
+          {
+            "Altitude": 3000,
+            "IAS": 230
+          },
+          {
+            "Altitude": 4000,
+            "IAS": 245
+          },
+          {
+            "Altitude": 5000,
+            "IAS": 255
+          },
+          {
+            "Altitude": 6000,
+            "IAS": 265
+          },
+          {
+            "Altitude": 7000,
+            "IAS": 275
+          },
+          {
+            "Altitude": 8000,
+            "IAS": 285
+          },
+          {
+            "Altitude": 9000,
+            "IAS": 295
+          },
+          {
+            "Altitude": 10000,
+            "IAS": 300
+          },
+          {
+            "Altitude": 11000,
+            "IAS": 300
+          }
+        ],
+        "Descend": [
+          {
+            "Altitude": 0,
+            "IAS": 145
+          },
+          {
+            "Altitude": 1000,
+            "IAS": 170
+          },
+          {
+            "Altitude": 2000,
+            "IAS": 200
+          },
+          {
+            "Altitude": 3000,
+            "IAS": 230
+          },
+          {
+            "Altitude": 4000,
+            "IAS": 260
+          },
+          {
+            "Altitude": 5000,
+            "IAS": 280
+          },
+          {
+            "Altitude": 6000,
+            "IAS": 285
+          },
+          {
+            "Altitude": 7000,
+            "IAS": 290
+          },
+          {
+            "Altitude": 8000,
+            "IAS": 295
+          },
+          {
+            "Altitude": 9000,
+            "IAS": 300
+          },
+          {
+            "Altitude": 10000,
+            "IAS": 300
+          },
+          {
+            "Altitude": 11000,
+            "IAS": 300
+          }
+        ]
+      },
+      "Segments": [
+        {
+          "Mode": "climb",
+          "Start": {
+            "Latitude": 38.7812996,
+            "Longitude": -9.1359196,
+            "Altitude": {
+              "Quantity": 114,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 39.7,
+            "Longitude": -7.0,
+            "Altitude": {
+              "Quantity": 11000,
+              "Unit": "m"
+            }
+          }
+        },
+        {
+          "Mode": "cruise",
+          "Start": {
+            "Latitude": 39.7,
+            "Longitude": -7.0,
+            "Altitude": {
+              "Quantity": 11000,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 40.0,
+            "Longitude": -5.0,
+            "Altitude": {
+              "Quantity": 11000,
+              "Unit": "m"
+            }
+          }
+        },
+        {
+          "Mode": "descend",
+          "Start": {
+            "Latitude": 40.0,
+            "Longitude": -5.0,
+            "Altitude": {
+              "Quantity": 11000,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 40.4936,
+            "Longitude": -3.56676,
+            "Altitude": {
+              "Quantity": 610,
+              "Unit": "m"
+            }
+          }
+        }
+      ],
+      "DepartureAirport": {
+        "Id": "LIS",
+        "Icao": "LIS",
+        "Name": "Humberto Delgado Airport",
+        "Town": "Lisbon",
+        "Country": "Portugal",
+        "Latitude": 38.7812996,
+        "Longitude": -9.1359196,
+        "Altitude": 114.0
+      },
+      "ArrivalAirport": {
+        "Id": "MAD",
+        "Icao": "MAD",
+        "Name": "Adolfo Su\u00e1rez Madrid Barajas International Airport",
+        "Town": "Madrid",
+        "Country": "Spain",
+        "Latitude": 40.4936,
+        "Longitude": -3.56676,
+        "Altitude": 610.0
+      }
+    }
+  ],
+  "Aircraft": {
+    "ModelId": "777-200ER",
+    "Description": "Boeing 777-200ER",
+    "Maker": "Boeing",
+    "Type": "passenger",
+    "NumberMotors": 2,
+    "Motor": "GE 90B",
+    "MotorType": "turbofan",
+    "CruiseAltitude": 13136.880000000001,
+    "CruiseSpeed": 0.84,
+    "TSFC": 1.6315459407646855e-05,
+    "LapseRateFactor": 0.7,
+    "Thrust0": 489000.0,
+    "ThrustMaxSpeed": 300000.0,
+    "MaxSpeed": 1.0,
+    "EWeight": 145149.5584,
+    "MTOW": 347451.75542,
+    "MaxPayload": 60327.78521,
+    "FuelCapacity": 145751.82974995105,
+    "VMO": 180.0555554,
+    "MMO": 0.89,
+    "WingArea": 440.0,
+    "WingSpan": 60.93,
+    "AspectRatio": 9.0,
+    "E": 0.87,
+    "CdragFunction": [
+      {
+        "Speed": 0.0,
+        "Cdrag0": 0.017
+      },
+      {
+        "Speed": 0.75,
+        "Cdrag0": 0.017
+      },
+      {
+        "Speed": 0.8,
+        "Cdrag0": 0.0185
+      },
+      {
+        "Speed": 0.85,
+        "Cdrag0": 0.021
+      },
+      {
+        "Speed": 0.9,
+        "Cdrag0": 0.024
+      },
+      {
+        "Speed": 0.95,
+        "Cdrag0": 0.034
+      },
+      {
+        "Speed": 1.0,
+        "Cdrag0": 0.06
+      }
+    ]
+  }
+}

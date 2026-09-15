@@ -1,0 +1,63 @@
+@startuml
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+skinparam maxMessageSize 250
+
+actor "Company Collaborator" as Actor
+participant "AircraftUI" as UI
+participant "DecommissionAircraftController" as Ctrl
+participant "AircraftService" as Svc
+database "AircraftRepository" as AircraftRepo
+participant "Aircraft" as Aircraft <<Aggregate Root>>
+
+Actor -> UI : enters aircraft registration (tail number)
+activate UI
+
+UI -> Ctrl : decommissionAircraft(registration)
+activate Ctrl
+
+    Ctrl -> Svc : decommissionAircraft(registration, sessionCompanyId)
+    activate Svc
+
+        Svc -> AircraftRepo : findByRegistration(registration)
+        activate AircraftRepo
+        AircraftRepo --> Svc : theAircraft
+        deactivate AircraftRepo
+
+        alt theAircraft != null && theAircraft.belongsTo(sessionCompanyId)
+
+            Svc -> Aircraft : decommission()
+            activate Aircraft
+                note right of Aircraft
+                    Changes status from ACTIVE
+                    to DECOMMISSIONED/RETIRED.
+                end note
+            Aircraft --> Svc : success
+            deactivate Aircraft
+
+            Svc -> AircraftRepo : save(theAircraft)
+            activate AircraftRepo
+            AircraftRepo --> Svc : success
+            deactivate AircraftRepo
+
+            Svc --> Ctrl : success
+        else aircraft not found or access denied
+            Svc --> Ctrl : error("Aircraft not found in your fleet")
+        end
+
+    deactivate Svc
+
+   alt success
+       Ctrl --> UI : Aircraft decommissioned successfully
+       UI --> Actor : display success message
+   else error
+       Ctrl --> UI : Operation failed
+       UI --> Actor : display error message
+   end
+
+deactivate Ctrl
+deactivate UI
+@enduml

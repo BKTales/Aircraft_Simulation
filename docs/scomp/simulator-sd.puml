@@ -1,0 +1,97 @@
+@startuml
+title SCOMP - Sequence Diagram: Internal Process/Pipe/Signal Flow
+
+actor "FCO" as FCO
+participant "main()\n[parent]" as MAIN
+participant "SimController" as CTRL
+participant "ctrl_pipe[i]" as CPIPE
+participant "data_pipe[i]" as DPIPE
+participant "flight_proc(i)\n[child]" as CHILD
+participant "Report\nFile" as REPORT
+
+== Initialization ==
+FCO -> MAIN : ./simulator plan1.json plan2.json ... --dt=1 --hT=5000 --vT=300
+activate MAIN
+    MAIN -> MAIN : parse CLI args
+    MAIN -> MAIN : parse_flight_plans(JSON files)
+
+    loop for each flight plan
+        MAIN -> CPIPE ** : pipe(ctrl)
+        MAIN -> DPIPE ** : pipe(data)
+        MAIN -> CHILD ** : fork()
+
+        alt parent branch
+            MAIN -> CPIPE : close(read end)
+            MAIN -> DPIPE : close(write end)
+        else child branch
+            CHILD -> CPIPE : close(write end)
+            CHILD -> DPIPE : close(read end)
+            CHILD -> CHILD : install handlers\n(SIGUSR1, SIGTERM)
+            CHILD -> CHILD : load own flight plan
+        end
+    end
+
+    MAIN -> CTRL : run()
+    activate CTRL
+
+== Simulation Loop (US103: lock-step) ==
+loop until all done OR violations > max
+    CTRL -> CPIPE : write("GO\\n") for each active flight
+    CPIPE -> CHILD : tick
+
+    activate CHILD
+        CHILD -> CHILD : advance(dt)\n(interpolate climb/cruise/descend)
+        CHILD -> DPIPE : write(FlightUpdate)
+    deactivate CHILD
+
+    CTRL -> DPIPE : read(FlightUpdate) for each active flight
+    DPIPE --> CTRL : positions[]
+
+    == US102: Safety Violation Detection ==
+    CTRL -> CTRL : detectViolations(positions[],\n                hThreshold, vThreshold)
+
+    alt violation detected (pair i, j)
+        CTRL -> CTRL : log ViolationEvent
+        CTRL ->> CHILD : kill(pid_i, SIGUSR1)
+        CTRL ->> CHILD : kill(pid_j, SIGUSR1)
+
+        activate CHILD
+            CHILD -> CHILD : sigprocmask(BLOCK, all)
+            CHILD -> CHILD : print warning to stderr
+            CHILD -> CHILD : sigprocmask(UNBLOCK)
+        deactivate CHILD
+    end
+
+    alt total violations > maxViolations
+        loop for each active flight
+            CTRL ->> CHILD : kill(pid, SIGTERM)
+        end
+
+        activate CHILD
+            CHILD -> CHILD : set stop_flag = 1
+            CHILD -> CHILD : cleanup\n(close fds, free)
+            CHILD -> MAIN : exit(0)
+        deactivate CHILD
+        break
+    end
+
+    alt flight reports done == 1
+        CTRL -> CTRL : mark inactive
+    end
+end
+
+== Cleanup & Report ==
+loop for each child
+    CTRL -> MAIN : waitpid(pid, &status)
+end
+
+CTRL -> REPORT : generateReport()
+activate REPORT
+    REPORT --> CTRL : file written
+deactivate REPORT
+
+deactivate CTRL
+MAIN --> FCO : exit code + report path
+deactivate MAIN
+
+@enduml

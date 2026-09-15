@@ -1,0 +1,267 @@
+{
+  "ID": 111111,
+  "Type": "regular",
+  "Route": "KL100",
+  "AircraftId": "777-200ER",
+  "Load": {
+    "PassengerCount": 100,
+    "PassengerWeight": {
+      "Quantity": 9000,
+      "Unit": "kg"
+    },
+    "CargoWeight": {
+      "Quantity": 10000,
+      "Unit": "kg"
+    },
+    "TotalPayloadMassKg": 19000
+  },
+  "Leg": [
+    {
+      "Departure": "MAD",
+      "Arrival": "OPO",
+      "DepartureTime": "2026-06-02 23:50",
+      "ArrivalTime": "2026-07-02 1:30",
+      "Fuel": {
+        "Quantity": 40000,
+        "Unit": "kg"
+      },
+      "FlightProfile": {
+        "Climb": [
+          {
+            "Altitude": 0,
+            "IAS": 200
+          },
+          {
+            "Altitude": 1000,
+            "IAS": 210
+          },
+          {
+            "Altitude": 2000,
+            "IAS": 220
+          },
+          {
+            "Altitude": 3000,
+            "IAS": 230
+          },
+          {
+            "Altitude": 4000,
+            "IAS": 245
+          },
+          {
+            "Altitude": 5000,
+            "IAS": 255
+          },
+          {
+            "Altitude": 6000,
+            "IAS": 265
+          },
+          {
+            "Altitude": 7000,
+            "IAS": 275
+          },
+          {
+            "Altitude": 8000,
+            "IAS": 285
+          },
+          {
+            "Altitude": 9000,
+            "IAS": 295
+          },
+          {
+            "Altitude": 10000,
+            "IAS": 300
+          },
+          {
+            "Altitude": 11000,
+            "IAS": 300
+          }
+        ],
+        "Descend": [
+          {
+            "Altitude": 0,
+            "IAS": 145
+          },
+          {
+            "Altitude": 1000,
+            "IAS": 170
+          },
+          {
+            "Altitude": 2000,
+            "IAS": 200
+          },
+          {
+            "Altitude": 3000,
+            "IAS": 230
+          },
+          {
+            "Altitude": 4000,
+            "IAS": 260
+          },
+          {
+            "Altitude": 5000,
+            "IAS": 280
+          },
+          {
+            "Altitude": 6000,
+            "IAS": 285
+          },
+          {
+            "Altitude": 7000,
+            "IAS": 290
+          },
+          {
+            "Altitude": 8000,
+            "IAS": 295
+          },
+          {
+            "Altitude": 9000,
+            "IAS": 300
+          },
+          {
+            "Altitude": 10000,
+            "IAS": 300
+          },
+          {
+            "Altitude": 11000,
+            "IAS": 300
+          }
+        ]
+      },
+      "Segments": [
+        {
+          "Mode": "climb",
+          "Start": {
+            "Latitude": 40.4936,
+            "Longitude": -3.56676,
+            "Altitude": {
+              "Quantity": 610,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 41.0,
+            "Longitude": -4.5,
+            "Altitude": {
+              "Quantity": 11000,
+              "Unit": "m"
+            }
+          }
+        },
+        {
+          "Mode": "cruise",
+          "Start": {
+            "Latitude": 41.0,
+            "Longitude": -4.5,
+            "Altitude": {
+              "Quantity": 11000,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 41.1,
+            "Longitude": -6.5,
+            "Altitude": {
+              "Quantity": 11000,
+              "Unit": "m"
+            }
+          }
+        },
+        {
+          "Mode": "descend",
+          "Start": {
+            "Latitude": 41.1,
+            "Longitude": -6.5,
+            "Altitude": {
+              "Quantity": 11000,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 41.2481,
+            "Longitude": -8.6814,
+            "Altitude": {
+              "Quantity": 69,
+              "Unit": "m"
+            }
+          }
+        }
+      ],
+      "DepartureAirport": {
+        "Id": "MAD",
+        "Icao": "MAD",
+        "Name": "Adolfo Su\u00e1rez Madrid Barajas International Airport",
+        "Town": "Madrid",
+        "Country": "Spain",
+        "Latitude": 40.4936,
+        "Longitude": -3.56676,
+        "Altitude": 610.0
+      },
+      "ArrivalAirport": {
+        "Id": "OPO",
+        "Icao": "OPO",
+        "Name": "Francisco de S\u00e1 Carneiro Airport",
+        "Town": "Porto",
+        "Country": "Portugal",
+        "Latitude": 41.2481003,
+        "Longitude": -8.6813898,
+        "Altitude": 69.0
+      }
+    }
+  ],
+  "Aircraft": {
+    "ModelId": "777-200ER",
+    "Description": "Boeing 777-200ER",
+    "Maker": "Boeing",
+    "Type": "passenger",
+    "NumberMotors": 2,
+    "Motor": "GE 90B",
+    "MotorType": "turbofan",
+    "CruiseAltitude": 13136.880000000001,
+    "CruiseSpeed": 0.84,
+    "TSFC": 1.6315459407646855e-05,
+    "LapseRateFactor": 0.7,
+    "Thrust0": 489000.0,
+    "ThrustMaxSpeed": 300000.0,
+    "MaxSpeed": 1.0,
+    "EWeight": 145149.5584,
+    "MTOW": 347451.75542,
+    "MaxPayload": 60327.78521,
+    "FuelCapacity": 145751.82974995105,
+    "VMO": 180.0555554,
+    "MMO": 0.89,
+    "WingArea": 440.0,
+    "WingSpan": 60.93,
+    "AspectRatio": 9.0,
+    "E": 0.87,
+    "CdragFunction": [
+      {
+        "Speed": 0.0,
+        "Cdrag0": 0.017
+      },
+      {
+        "Speed": 0.75,
+        "Cdrag0": 0.017
+      },
+      {
+        "Speed": 0.8,
+        "Cdrag0": 0.0185
+      },
+      {
+        "Speed": 0.85,
+        "Cdrag0": 0.021
+      },
+      {
+        "Speed": 0.9,
+        "Cdrag0": 0.024
+      },
+      {
+        "Speed": 0.95,
+        "Cdrag0": 0.034
+      },
+      {
+        "Speed": 1.0,
+        "Cdrag0": 0.06
+      }
+    ]
+  }
+}

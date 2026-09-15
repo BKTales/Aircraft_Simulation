@@ -1,0 +1,35 @@
+@startuml
+
+actor Admin
+participant ListUsersUI
+participant ListUsersController
+participant UserManagementService
+participant UserRepository
+
+Admin -> ListUsersUI : selects List Users
+activate ListUsersUI
+
+    ListUsersUI -> ListUsersController : allUsers()
+    activate ListUsersController
+        ListUsersController -> ListUsersController : ensureAuthenticatedUserHasAnyOf(ADMIN)
+        ListUsersController -> UserManagementService : allUsers()
+        activate UserManagementService
+            UserManagementService -> UserRepository : findAll()
+            activate UserRepository
+                UserRepository --> UserManagementService : Iterable<SystemUser>
+            deactivate UserRepository
+            UserManagementService --> ListUsersController : Iterable<SystemUser>
+        deactivate UserManagementService
+        ListUsersController --> ListUsersUI : Iterable<SystemUser>
+    deactivate ListUsersController
+
+    ListUsersUI -> Admin : show user list (username, name, status, roles)
+
+    alt unauthorized
+        ListUsersController --> ListUsersUI : throw UnauthorizedException
+        ListUsersUI -> Admin : show unauthorized message
+        deactivate ListUsersUI
+    end
+
+
+@enduml

@@ -1,0 +1,176 @@
+<aircraft_list>
+<aircraft model_ID="777-200ER" description="Boeing 777-200ER">
+<maker>Boeing</maker>
+<type>passenger</type>
+<motorization>
+<number_motors>2</number_motors>
+<motor>GE 90B</motor>
+<motor_type>turbofan</motor_type>
+<cruise_altitude>43.1E+03 US</cruise_altitude>
+<cruise_speed>0.84 M</cruise_speed>
+<TSFC>1.6E-4 SI</TSFC>
+<lapse_rate_factor>0.7</lapse_rate_factor>
+<thrust_function>
+<thrust_0>4.89E+05 SI</thrust_0>
+<thrust_max_speed>3.0E+05 SI</thrust_max_speed>
+<max_speed>1.0 M</max_speed>
+</thrust_function>
+</motorization>
+<EWeight>320E+03 US</EWeight>
+<MTOW>766E+03 US</MTOW>
+<max_payload>133E+03 US</max_payload>
+<fuel_capacity>47890 US</fuel_capacity>
+<VMO>350 Knot</VMO>
+<MMO>0.89 M</MMO>
+<wing_area>440 SI</wing_area>
+<wing_span>60.93 SI</wing_span>
+<aspect_ratio>9.0</aspect_ratio>
+<e>0.87</e>
+<Cdrag_function>
+<iten>
+<speed>0 M</speed>
+<Cdrag_0>0.017</Cdrag_0>
+</iten>
+<iten>
+<speed>0.75 M</speed>
+<Cdrag_0>0.017</Cdrag_0>
+</iten>
+<iten>
+<speed>0.80 M</speed>
+<Cdrag_0>0.0185</Cdrag_0>
+</iten>
+<iten>
+<speed>0.85 M</speed>
+<Cdrag_0>0.021</Cdrag_0>
+</iten>
+<iten>
+<speed>0.90 M</speed>
+<Cdrag_0>0.024</Cdrag_0>
+</iten>
+<iten>
+<speed>0.95 M</speed>
+<Cdrag_0>0.034</Cdrag_0>
+</iten>
+<iten>
+<speed>1.0 M</speed>
+<Cdrag_0>0.06</Cdrag_0>
+</iten>
+</Cdrag_function>
+</aircraft>
+<aircraft model_ID="Boeing" description="Boeing Generic">
+<maker>Boeing</maker>
+<type>passenger</type>
+<motorization>
+<number_motors>2</number_motors>
+<motor>GE 90B</motor>
+<motor_type>turbofan</motor_type>
+<cruise_altitude>43.1E+03 US</cruise_altitude>
+<cruise_speed>0.84 M</cruise_speed>
+<TSFC>1.6E-4 SI</TSFC>
+<lapse_rate_factor>0.7</lapse_rate_factor>
+<thrust_function>
+<thrust_0>4.89E+05 SI</thrust_0>
+<thrust_max_speed>3.0E+05 SI</thrust_max_speed>
+<max_speed>1.0 M</max_speed>
+</thrust_function>
+</motorization>
+<EWeight>320E+03 US</EWeight>
+<MTOW>766E+03 US</MTOW>
+<max_payload>133E+03 US</max_payload>
+<fuel_capacity>47890 US</fuel_capacity>
+<VMO>350 Knot</VMO>
+<MMO>0.89 M</MMO>
+<wing_area>440 SI</wing_area>
+<wing_span>60.93 SI</wing_span>
+<aspect_ratio>9.0</aspect_ratio>
+<e>0.87</e>
+<Cdrag_function>
+<iten>
+<speed>0 M</speed>
+<Cdrag_0>0.017</Cdrag_0>
+</iten>
+<iten>
+<speed>0.75 M</speed>
+<Cdrag_0>0.017</Cdrag_0>
+</iten>
+<iten>
+<speed>0.80 M</speed>
+<Cdrag_0>0.0185</Cdrag_0>
+</iten>
+<iten>
+<speed>0.85 M</speed>
+<Cdrag_0>0.021</Cdrag_0>
+</iten>
+<iten>
+<speed>0.90 M</speed>
+<Cdrag_0>0.024</Cdrag_0>
+</iten>
+<iten>
+<speed>0.95 M</speed>
+<Cdrag_0>0.034</Cdrag_0>
+</iten>
+<iten>
+<speed>1.0 M</speed>
+<Cdrag_0>0.06</Cdrag_0>
+</iten>
+</Cdrag_function>
+</aircraft>
+<aircraft model_ID="A380" description="Aibus A380">
+<maker>Airbus</maker>
+<type>passenger</type>
+<motorization>
+<number_motors>4</number_motors>
+<motor>RR Trent 970</motor>
+<motor_type>turbofan</motor_type>
+<cruise_altitude>43E+03 US</cruise_altitude>
+<cruise_speed>0.85 M</cruise_speed>
+<TSFC>1.6E-4 SI</TSFC>
+<lapse_rate_factor>0.7</lapse_rate_factor>
+<thrust_function>
+<thrust_0>348.31E+03 SI</thrust_0>
+<thrust_max_speed>1.8E+05 SI</thrust_max_speed>
+<max_speed>0.9 M</max_speed>
+</thrust_function>
+</motorization>
+<EWeight>276.8E+03 SI</EWeight>
+<MTOW>575E+03 SI</MTOW>
+<max_payload>64E+03 SI</max_payload>
+<fuel_capacity>3.2E+05 SI</fuel_capacity>
+<VMO>350 Knot</VMO>
+<MMO>0.89 M</MMO>
+<wing_area>845 SI</wing_area>
+<wing_span>79.75 SI</wing_span>
+<aspect_ratio>7.53</aspect_ratio>
+<e>0.84</e>
+<Cdrag_function>
+<iten>
+<speed>0 M</speed>
+<Cdrag_0>0.020</Cdrag_0>
+</iten>
+<iten>
+<speed>0.75 M</speed>
+<Cdrag_0>0.020</Cdrag_0>
+</iten>
+<iten>
+<speed>0.80 M</speed>
+<Cdrag_0>0.0204</Cdrag_0>
+</iten>
+<iten>
+<speed>0.85 M</speed>
+<Cdrag_0>0.022</Cdrag_0>
+</iten>
+<iten>
+<speed>0.90 M</speed>
+<Cdrag_0>0.037</Cdrag_0>
+</iten>
+<iten>
+<speed>0.95 M</speed>
+<Cdrag_0>0.038</Cdrag_0>
+</iten>
+<iten>
+<speed>1.0 M</speed>
+<Cdrag_0>0.040</Cdrag_0>
+</iten>
+</Cdrag_function>
+</aircraft>
+</aircraft_list>

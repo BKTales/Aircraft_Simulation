@@ -1,0 +1,47 @@
+@startuml
+actor "Backoffice Operator" as BO <<Actor>>
+participant "ListCompanyCollaboratorUsersUI" as UI <<UI>>
+participant "ListCompanyCollaboratorUsersController" as Ctrl <<Controller>>
+participant "CompanyCollaboratorUserService" as Svc <<Service>>
+database "AirTransportCompanyRepository" as CompRepo <<Repository>>
+database "CompanyCollaboratorUserRepository" as ColRepo <<Repository>>
+
+BO -> UI : requests list of collaborators
+activate UI
+
+UI -> Ctrl : allAirTransportCompanies()
+activate Ctrl
+
+    Ctrl -> CompRepo : findAll()
+    activate CompRepo
+    CompRepo --> Ctrl : companies
+    deactivate CompRepo
+
+    Ctrl --> UI : companies
+deactivate Ctrl
+
+UI -> BO : displays companies and prompts for choice
+BO -> UI : selects company (iataCode)
+
+UI -> Ctrl : activeCompanyCollaboratorsUsersForCompany(iataCode)
+activate Ctrl
+
+    Ctrl -> Svc : findActiveCollaboratorsByCompany(ColRepo, iataCode)
+    activate Svc
+
+        Svc -> ColRepo : findByCompanyIataCodeAndActive(iataCode)
+        activate ColRepo
+        ColRepo --> Svc : activeCollaborators
+        deactivate ColRepo
+
+        Svc --> Ctrl : activeCollaborators
+    deactivate Svc
+
+    Ctrl --> UI : activeCollaborators
+deactivate Ctrl
+
+UI -> UI : render list of active collaborators
+UI --> BO : displays active collaborators
+deactivate UI
+
+@enduml

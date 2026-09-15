@@ -1,0 +1,127 @@
+@startuml US075_AddPilot
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+
+
+title US075 – Add a Pilot
+
+actor "Company Collaborator" as Actor
+participant "AddPilotUI"              as UI        <<UI>>
+participant "AddPilotController"      as Ctrl      <<Controller>>
+participant "PilotService"            as Svc       <<Service>>
+database    "CompanyRepository"       as CompRepo  <<Repository>>
+database    "PilotRepository"         as PilotRepo <<Repository>>
+database    "AircraftModelRepository" as ModelRepo <<Repository>>
+participant "AirTransportCompany"     as Company   <<Aggregate Root>>
+participant "PilotFactory"            as Factory   <<Factory>>
+participant "Pilot"                   as Pilot     <<Aggregate Root>>
+participant "PilotCertification"      as Cert      <<Entity>>
+
+Actor -> UI : enters pilot email and certifications\n(collaboratorEmail, certsData[])
+activate UI
+
+UI -> Ctrl : addPilot(collaboratorEmail, certsData[], companyId)
+activate Ctrl
+
+    Ctrl -> Svc : addPilot(collaboratorEmail, certsData[], companyId)
+    activate Svc
+
+        Svc -> CompRepo : findById(companyId)
+        activate CompRepo
+        CompRepo --> Svc : company
+        deactivate CompRepo
+
+        alt company == null
+            Svc --> Ctrl : error("Company not found")
+        else
+
+            Svc -> Company : findCollaboratorByEmail(collaboratorEmail)
+            activate Company
+            Company --> Svc : collaborator
+            deactivate Company
+
+            alt collaborator == null
+                Svc --> Ctrl : error("Collaborator not found in company")
+            else collaborator.position != PILOT
+                Svc --> Ctrl : error("Collaborator does not have PILOT role")
+            else collaborator.status != ACTIVE
+                Svc --> Ctrl : error("Collaborator is not active")
+            else collaborator.pilotId != null
+                Svc --> Ctrl : error("Collaborator is already a registered pilot")
+            else
+
+                loop for each certData in certsData[]
+                    Svc -> ModelRepo : findById(certData.modelId)
+                    activate ModelRepo
+                    ModelRepo --> Svc : model
+                    deactivate ModelRepo
+
+                    alt model == null
+                        Svc --> Ctrl : error("AircraftModel not found: " + certData.modelId)
+                    end
+                end
+
+                Svc -> Factory : createPilot()
+                activate Factory
+                    note right of Factory
+                        No email stored — personal data
+                        lives in CompanyCollaborator.
+                    end note
+                    Factory -> Pilot : new(generateID())
+                    Factory --> Svc : newPilot
+                deactivate Factory
+
+                loop for each certData in certsData[]
+                    Svc -> Pilot : addCertification(certData.modelId, certData.dueDate)
+                    activate Pilot
+                        note right of Pilot
+                            Pilot acts as factory for its
+                            internal PilotCertification entities.
+                            Invariant: must have >= 1
+                            active certification.
+                        end note
+                        Pilot -> Cert : new(generateID(), certData.modelId, certData.dueDate)
+                        Pilot -> Pilot : certifications.add(cert)
+                    deactivate Pilot
+                end
+
+                Svc -> PilotRepo : save(newPilot)
+                activate PilotRepo
+                PilotRepo --> Svc : saved
+                deactivate PilotRepo
+
+                Svc -> Company : assignPilotId(collaboratorEmail, newPilot.pilotId)
+                activate Company
+                    note right of Company
+                        Company navigates to its internal
+                        CompanyCollaborator and sets pilotId.
+                        Persisted through the Aggregate Root.
+                    end note
+                Company --> Svc : updated
+                deactivate Company
+
+                Svc -> CompRepo : save(company)
+                activate CompRepo
+                CompRepo --> Svc : saved
+                deactivate CompRepo
+
+                Svc --> Ctrl : success(newPilot.pilotId)
+            end
+        end
+
+    deactivate Svc
+
+    alt success
+        Ctrl --> UI : Pilot Added Successfully
+        UI --> Actor : show success screen
+    else error
+        Ctrl --> UI : Error message
+        UI --> Actor : show error details
+    end
+
+deactivate Ctrl
+deactivate UI
+@enduml

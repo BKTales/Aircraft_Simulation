@@ -1,0 +1,98 @@
+@startuml
+actor "Backoffice Operator" as BO <<Actor>>
+participant "RegisterAircraftModelUI" as UI <<UI>>
+participant "CreateAircraftModelController" as Ctrl <<Controller>>
+participant "AircraftModelService" as Svc <<Service>>
+database "ManufacturerRepository" as ManRepo <<Repository>>
+database "AircraftModelRepository" as ModelRepo <<Repository>>
+database "EngineModelRepository" as EngRepo <<Repository>>
+participant "AircraftModel" as AM <<Aggregate Root>>
+participant "EngineConfiguration" as EC <<Entity>>
+
+BO -> UI : enters aircraft model data
+activate UI
+
+UI -> Ctrl : createAircraftModel(...)
+activate Ctrl
+
+Ctrl -> Ctrl : ensure role (ADMIN or BACKOFFICE_OPERATOR)
+
+Ctrl -> Svc : createAircraftModel(...)
+activate Svc
+
+Svc -> ManRepo : findById(manufacturerId)
+activate ManRepo
+ManRepo --> Svc : manufacturer?
+deactivate ManRepo
+
+alt manufacturer not found
+    Svc --> Ctrl : throw ManufacturerNotFoundException
+else exists
+    Svc -> ModelRepo : existsByNameAndManufacturer(name, manuId)
+    activate ModelRepo
+    ModelRepo --> Svc : exists?
+    deactivate ModelRepo
+
+    alt already exists
+        Svc --> Ctrl : throw AircraftModelAlreadyExistsException
+    else unique
+        loop for each EngineModel
+            Svc -> EngRepo : findByModelId(engineModelId)
+            activate EngRepo
+            EngRepo --> Svc : engine?
+            deactivate EngRepo
+
+            alt not found
+                Svc --> Ctrl : throw EngineModelNotFoundException
+            end
+        end
+
+        Svc -> AM : new AircraftModel(...)
+        activate AM
+        AM -> AM : validates: non-null components,\nweight order, positive values
+        AM --> Svc : valid AircraftModel
+        deactivate AM
+
+        loop for each engineModelId
+            Svc -> AM : addEngineConfiguration(engineModelId)
+            activate AM
+            AM -> EC** : new EngineConfiguration(engineModelId)
+            activate EC
+            EC --> AM : configured
+            deactivate EC
+            AM --> Svc : configuration added
+            deactivate AM
+        end
+
+        Svc -> AM : validateEngineCount()
+        activate AM
+        AM -> AM : assert: certifiedConfigurations >= 1
+        AM --> Svc : validation passed
+        deactivate AM
+
+        Svc -> ModelRepo : save(aircraftModel)
+        activate ModelRepo
+
+        alt integrity violation
+            ModelRepo --> Svc : throw IntegrityViolationException
+            Svc --> Ctrl : throw AircraftModelAlreadyExistsException
+        else success
+            ModelRepo --> Svc : persisted
+        end
+        deactivate ModelRepo
+    end
+end
+
+alt success
+    Svc --> Ctrl : AircraftModel
+    Ctrl --> UI : AircraftModel
+    UI --> BO : success
+else error
+    Svc --> Ctrl : exception
+    Ctrl --> UI : propagates exception
+    UI --> BO : error message
+end
+
+deactivate Ctrl
+deactivate UI
+@enduml

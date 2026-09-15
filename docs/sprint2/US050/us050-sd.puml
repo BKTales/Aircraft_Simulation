@@ -1,0 +1,55 @@
+@startuml US050_RegisterAirControlArea
+
+autonumber
+
+actor "Admin / Backoffice Operator" as OP
+
+participant "RegisterAirControlAreaUI" as UI <<UI>>
+participant "RegisterAirControlAreaController" as CTRL <<Controller>>
+participant "AirControlAreaService" as SVC <<Service>>
+database "AirControlAreaRepository" as REPO <<Repository>>
+participant "GeographicBoundaryService" as GEO <<Service>>
+participant "AirControlArea" as AREA <<Aggregate Root>>
+
+OP -> UI : input area name, boundary coordinates, min fuel
+activate UI
+
+UI -> CTRL : registerAirControlArea(name, coords, minFuel)
+activate CTRL
+
+CTRL -> CTRL : ensure role is Admin or Backoffice Operator
+CTRL -> SVC : registerNewArea(name, coords, minFuel)
+activate SVC
+
+SVC -> REPO : findAll()
+activate REPO
+REPO --> SVC : existing areas
+deactivate REPO
+
+loop each existing area
+    SVC -> GEO : checkCollision(newBoundary, existingBoundary)
+    activate GEO
+    GEO --> SVC : boolean
+    deactivate GEO
+end
+
+alt overlap found
+    SVC --> CTRL : OverlapBoundaryException
+    CTRL --> UI : error message
+    UI --> OP : operation failed
+else no overlap
+    SVC -> AREA** : new AirControlArea(...)
+    SVC -> REPO : save(area)
+    activate REPO
+    REPO --> SVC : area
+    deactivate REPO
+    SVC --> CTRL : area
+    CTRL --> UI : success
+    UI --> OP : area registered
+end
+
+deactivate SVC
+deactivate CTRL
+deactivate UI
+
+@enduml

@@ -1,0 +1,130 @@
+@startuml US61_Branch1_CreateNewUserWithATCC
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+skinparam maxMessageSize 220
+
+title US61 - Branch 1: Create New Company Collaborator User (New User + ATCC)
+
+actor "Backoffice Operator" as Operator
+participant "AddCompanyCollaboratorUI" as UI <<UI>>
+participant "AddCompanyCollaboratorController" as Ctrl <<Controller>>
+database "AirTransportCompanyRepository" as CompanyRepo <<Repository>>
+participant "CompanyCollaboratorUserService" as Svc <<Service>>
+participant "UserBuilderHelper" as UBH <<Helper>>
+participant "SystemUserBuilder" as SysUserBld <<Builder>>
+participant "SystemUser" as SysUser <<Entity>>
+database "UserRepository" as UserRepo <<Repository>>
+participant "CompanyCollaboratorUserBuilder" as ColabBld <<Builder>>
+participant "CompanyCollaboratorUser" as ColabUser <<Entity>>
+database "CompanyCollaboratorUserRepository" as ColabRepo <<Repository>>
+
+Operator -> UI : selects "Add New Collaborator"
+activate UI
+
+UI -> Ctrl : getCompanyIds()
+activate Ctrl
+
+Ctrl -> CompanyRepo : findAll()
+activate CompanyRepo
+CompanyRepo --> Ctrl : returns AirTransportCompany list
+deactivate CompanyRepo
+
+Ctrl --> UI : returns list of IATA codes
+deactivate Ctrl
+
+UI --> Operator : requests user data\n(username, password, firstName,\nlastName, email, role,\nsecurity clearance, phone)
+Operator -> UI : enters username, password, firstName,\nlastName, email, role, security clearance,\nphone number
+Operator -> UI : selects company (IATA code)
+
+UI -> Ctrl : addUser(username, password, firstName,\nlastName, email, roles, companyId,\nsecurityData, phoneNumber)
+activate Ctrl
+
+Ctrl -> Svc : createCollaboratorUser(username, password,\nfirstName, lastName, email, roles,\ncompanyId, securityData, phoneNumber,\nuserRepository, collaboratorRepository,\ntransactionalContext)
+activate Svc
+
+group Transactional Context
+
+    Svc -> UserRepo : existsByUsername(username)
+    activate UserRepo
+    UserRepo --> Svc : false
+    deactivate UserRepo
+
+    Svc -> UBH : builder()
+    activate UBH
+    UBH --> Svc : SystemUserBuilder
+    deactivate UBH
+    
+    Svc -> SysUserBld : with(username, password, firstName,\nlastName, email)
+    activate SysUserBld
+    SysUserBld --> Svc : self
+    deactivate SysUserBld
+    
+    Svc -> SysUserBld : createdOn(Calendar.now())
+    activate SysUserBld
+    SysUserBld --> Svc : self
+    deactivate SysUserBld
+    
+    Svc -> SysUserBld : withRoles(roles)
+    activate SysUserBld
+    SysUserBld --> Svc : self
+    deactivate SysUserBld
+    
+    Svc -> SysUserBld : build()
+    activate SysUserBld
+    SysUserBld --> SysUser : creates
+    activate SysUser
+    deactivate SysUser
+    deactivate SysUserBld
+    
+    Svc -> UserRepo : save(newSystemUser)
+    activate UserRepo
+    UserRepo --> Svc : savedSystemUser: SystemUser
+    deactivate UserRepo
+
+    Svc -> ColabBld : new CompanyCollaboratorUserBuilder()
+    activate ColabBld
+    
+    Svc -> ColabBld : withSystemUser(savedSystemUser)
+    ColabBld --> Svc : self
+    
+    Svc -> ColabBld : withIataCode(companyId)
+    ColabBld --> Svc : self
+    
+    Svc -> ColabBld : withPhoneNumber(phoneNumber)
+    ColabBld --> Svc : self
+
+    Svc -> ColabBld : withRole(roleType)
+    ColabBld --> Svc : self
+
+    Svc -> ColabBld : withSecurityData(securityData)
+    ColabBld --> Svc : self
+    
+    Svc -> ColabBld : build()
+    ColabBld --> ColabUser : creates
+    activate ColabUser
+    deactivate ColabUser
+    deactivate ColabBld
+
+    Svc -> ColabRepo : save(collaboratorUser)
+    activate ColabRepo
+    ColabRepo --> Svc : savedCollaboratorUser: CompanyCollaboratorUser
+    deactivate ColabRepo
+    deactivate ColabUser
+    deactivate SysUser
+
+end
+
+Svc --> Ctrl : operationSuccess
+deactivate Svc
+
+Ctrl --> UI : Collaborator Created Successfully
+deactivate Ctrl
+
+UI --> Operator : display success message:\n"Company Collaborator successfully registered"
+
+deactivate UI
+
+@enduml

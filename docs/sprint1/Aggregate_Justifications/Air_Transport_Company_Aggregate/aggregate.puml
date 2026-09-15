@@ -1,0 +1,72 @@
+@startuml
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam Linetype ortho
+skinparam packageStyle rectangle
+skinparam nodesep 50
+skinparam ranksep 120
+
+skinparam object {
+    BackgroundColor<<Entity Root>> #D5E8D4
+    BackgroundColor<<Entity>>      #EAF4E1
+    BackgroundColor<<Value Object>> #DAE8FC
+    BorderColor #444444
+    FontSize 13
+}
+skinparam package {
+    BorderColor #888888
+    FontSize 11
+    FontStyle bold
+}
+
+
+package AirTransportCompanyAggregate {
+        object AirTransportCompany <<Entity Root>>
+        object CompanyName <<Value Object>>
+        object CompanyIATACode <<Value Object>>
+        note right of CompanyIATACode
+            2-letter airline designator.
+            Used as prefix of RouteName.
+        end note
+        object CompanyICAOCode <<Value Object>>
+        note right of CompanyICAOCode
+            2-3-letter airline designator.
+        end note
+        object CollaboratorStatus <<Value Object>>
+        note right of CollaboratorStatus
+            active | inactive
+        end note
+
+        object CompanyCollaborator <<Entity>>{
+            pilotId
+        }
+        note right of CompanyCollaborator
+            References the system user via email.
+            Invariant: collaborator belongs to
+            exactly one company at a time.
+        end note
+
+        object CollaboratorEmail <<Value Object>>
+        object CollaboratorName <<Value Object>>
+        object CollaboratorPosition <<Value Object>>
+        object SecurityClearance <<Value Object>> {
+            expiryDate
+            skillsAssessmentDate
+        }
+        note right of SecurityClearance
+            Auto-expires; renewed every 5 years.
+            Managed by Admin / Backoffice Operator.
+        end note
+
+        AirTransportCompany "1" *-- "1"    CompanyName
+        AirTransportCompany "1" *-- "1"    CompanyIATACode
+        AirTransportCompany "1" *-- "1"    CompanyICAOCode
+        AirTransportCompany "1" *-- "0..*" CompanyCollaborator : employs >
+        CompanyCollaborator "1" *-- "1"    CollaboratorStatus
+        CompanyCollaborator "1" *-- "1"    CollaboratorEmail
+        CompanyCollaborator "1" *-- "1"    CollaboratorPosition
+        CompanyCollaborator "1" *-- "1"    CollaboratorName
+        CompanyCollaborator "1" *-- "1"    SecurityClearance
+
+}
+@enduml

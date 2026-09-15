@@ -1,0 +1,14 @@
+metric,value
+flights_reported,2
+flights_success,2
+execution_failures,0
+collision_events,0
+collision_flights,0
+safety_violation_events,0
+simulator_failure_count,0
+simulator_failure_threshold,3
+validation_result,PASS
+
+flight_id,departure,arrival,execution_status,step,departure_utc,last_update_utc,real_duration,planned_arrival_utc,planned_duration,latitude_deg,longitude_deg,altitude_m,speed_kt,speed_ms,fuel_total_kg,fuel_used_kg,fuel_remaining_kg
+789012,LIS,BCN,SUCCESS,9999,01/01 00:00:00,01/01 02:46:39,02h 46m 39s,01/01 00:00:00,00h 00m 00s,41.220000,1.920000,0.00,350.17,180.14,320000.00,62672.20,257327.80
+789013,STN,FCO,SUCCESS,9999,01/01 00:00:00,01/01 02:46:39,02h 46m 39s,01/01 00:00:00,00h 00m 00s,41.780000,12.180000,0.00,350.17,180.14,320000.00,62672.59,257327.41

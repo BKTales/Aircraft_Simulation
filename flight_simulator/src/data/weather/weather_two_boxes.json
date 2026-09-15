@@ -1,0 +1,29 @@
+{
+  "areaCode": "AREA-MULTI",
+  "records": [
+    {
+      "startTimeS": 0,
+      "endTimeS": 9999999999,
+      "windDirectionDeg": 270,
+      "windSpeedMs": 15.0,
+      "bounds": {
+        "minLat": 38.0,
+        "maxLat": 39.5,
+        "minLon": -9.8,
+        "maxLon": -8.0
+      }
+    },
+    {
+      "startTimeS": 0,
+      "endTimeS": 9999999999,
+      "windDirectionDeg": 0,
+      "windSpeedMs": 20.0,
+      "bounds": {
+        "minLat": 39.8,
+        "maxLat": 41.5,
+        "minLon": -4.0,
+        "maxLon": 1.0
+      }
+    }
+  ]
+}

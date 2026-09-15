@@ -1,0 +1,39 @@
+flowchart TB
+  subgraph java [Java aisafe.core]
+    FSS[FlightSimulationService]
+    GW[ProcessSimulatorGateway]
+  end
+  subgraph parent [Parent process flight_simulator.c]
+    MainLoop[Main step loop]
+    EnvThread[Environment thread US110]
+    SafetyThread[Safety thread US106]
+    ReportThread[Report thread US109]
+  end
+  subgraph children [Child processes flight_process.c]
+    C1[Flight 0]
+    C2[Flight N]
+  end
+  subgraph ipc [POSIX IPC]
+    SHM[(Shared memory sim_shared_t)]
+    SemStart[Semaphores start/done US108]
+    SigUSR1[SIGUSR1 violations US107]
+  end
+  subgraph files [Filesystem]
+    JSON[FS_FLIGHT_PLANS_DIR *.json]
+    Weather[FS_WEATHER_FILE snapshot]
+    Reports[FS_REPORTS_DIR report.csv report.txt]
+  end
+  FSS --> GW
+  GW -->|ProcessBuilder + env vars| parent
+  GW --> JSON
+  GW --> Weather
+  parent -->|fork| children
+  MainLoop --> SHM
+  MainLoop --> SemStart
+  EnvThread --> SHM
+  SafetyThread --> SigUSR1
+  SafetyThread --> ReportThread
+  children --> SHM
+  children --> SemStart
+  ReportThread --> Reports
+  GW -->|parse CSV| Reports

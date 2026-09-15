@@ -1,0 +1,94 @@
+@startuml US056_CreateEngineModel
+
+autonumber
+
+actor "Admin / Backoffice Operator" as OP
+
+participant "RegisterEngineModelUI" as UI <<UI>>
+participant "CreateEngineModelController" as CTRL <<Controller>>
+participant "EngineModelService" as SVC <<Service>>
+participant "ManufacturerRepository" as MREPO <<Repository>>
+participant "EngineModelRepository" as REPO <<Repository>>
+participant "EngineModel" as ENGINE <<Aggregate Root>>
+participant "EngineName" as ENAME <<Value Object>>
+participant "MotorizationType" as MOT <<enum>>
+participant "ThrustProfile" as THRUST <<Value Object>>
+participant "FuelType" as FUEL <<enum>>
+participant "TSFC" as TSFC <<Value Object>>
+
+OP -> UI : initiates engine model registration
+activate UI
+
+UI -> CTRL : createEngineModel(name, manufacturerId,\n  motorization, thrustAtStatic, thrustAtCruise,\n  fuelType, tsfc)
+activate CTRL
+
+CTRL -> SVC : createEngineModel(name, manufacturerId,\n  motorization, thrustAtStatic, thrustAtCruise,\n  fuelType, tsfc)
+activate SVC
+
+SVC -> MREPO : findById(manufacturerId)
+activate MREPO
+MREPO --> SVC : Optional<Manufacturer>
+deactivate MREPO
+
+alt manufacturer not found
+    SVC --> CTRL : throws ManufacturerNotFoundException
+    CTRL --> UI : failure
+    UI --> OP : show error "Manufacturer not found"
+end
+
+SVC -> REPO : existsByNameAndManufacturer(name, manufacturerId)
+activate REPO
+REPO --> SVC : boolean
+deactivate REPO
+
+alt name + manufacturer already exists
+    SVC --> CTRL : throws EngineModelAlreadyExistsException
+    CTRL --> UI : failure
+    UI --> OP : show error "Engine model already registered for this manufacturer"
+end
+
+SVC -> ENAME** : valueOf(name)
+activate ENAME
+ENAME --> SVC : engineName
+deactivate ENAME
+
+SVC -> MOT : fromLabel(motorization)
+activate MOT
+MOT --> SVC : motorizationType
+deactivate MOT
+
+SVC -> THRUST** : valueOf(thrustAtStatic, thrustAtCruise)
+activate THRUST
+THRUST --> SVC : thrustProfile
+deactivate THRUST
+
+SVC -> FUEL : valueOf(fuelType)
+activate FUEL
+FUEL --> SVC : fuelTypeEnum
+deactivate FUEL
+
+SVC -> TSFC** : valueOf(tsfc)
+activate TSFC
+TSFC --> SVC : tsfcVo
+deactivate TSFC
+
+SVC -> ENGINE** : new EngineModel(id, engineName, tsfcVo,\n  fuelTypeEnum, thrustProfile, manufacturerId, motorizationType)
+activate ENGINE
+ENGINE --> SVC : engineModel
+deactivate ENGINE
+
+SVC -> REPO : save(engineModel)
+activate REPO
+REPO --> SVC : engineModel
+deactivate REPO
+
+SVC --> CTRL : engineModel
+deactivate SVC
+
+CTRL --> UI : engineModel
+deactivate CTRL
+
+UI --> OP : show success "Engine model registered"
+deactivate UI
+
+@enduml

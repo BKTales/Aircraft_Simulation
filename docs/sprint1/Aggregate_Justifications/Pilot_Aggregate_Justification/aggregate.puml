@@ -1,0 +1,49 @@
+@startuml
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam Linetype ortho
+skinparam packageStyle rectangle
+skinparam nodesep 50
+skinparam ranksep 120
+
+skinparam object {
+    BackgroundColor<<Entity Root>> #D5E8D4
+    BackgroundColor<<Entity>>      #EAF4E1
+    BackgroundColor<<Value Object>> #DAE8FC
+    BorderColor #444444
+    FontSize 13
+}
+skinparam package {
+    BorderColor #888888
+    FontSize 11
+    FontStyle bold
+}
+
+
+package PilotAggregate {
+    object Pilot <<Entity Root>>
+
+    object PilotCertification <<Entity>>{
+        certificationId
+        aircraftModelId
+    }
+    note right of PilotCertification
+        Only for PILOT collaborators.
+        Invariant: pilot must have >= 1
+        active certification (US075/US077).
+        Cannot deactivate pilot with
+        flight plans assigned (US077).
+    end note
+
+    object PilotId <<Value Object>>
+    object DueDate <<Value Object>>{
+        StartDate
+        EndDate
+    }
+
+    PilotId "1" --* "1" Pilot
+    PilotCertification "1" *-- "1" DueDate
+    PilotCertification "1..*" --* "1" Pilot
+
+}
+@enduml

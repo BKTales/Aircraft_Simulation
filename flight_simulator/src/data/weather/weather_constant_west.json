@@ -1,0 +1,12 @@
+{
+  "areaCode": "AREA-0",
+  "records": [
+    {
+      "startTimeS": 0,
+      "endTimeS": 9999999999,
+      "windDirectionDeg": 270,
+      "windSpeedMs": 10.0,
+      "bounds": { "minLat": -90.0, "maxLat": 90.0, "minLon": -180.0, "maxLon": 180.0 }
+    }
+  ]
+}

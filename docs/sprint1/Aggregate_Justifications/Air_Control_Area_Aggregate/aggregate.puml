@@ -1,0 +1,40 @@
+@startuml
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam Linetype ortho
+skinparam packageStyle rectangle
+skinparam nodesep 50
+skinparam ranksep 120
+
+skinparam object {
+    BackgroundColor<<Entity Root>> #D5E8D4
+    BackgroundColor<<Entity>>      #EAF4E1
+    BackgroundColor<<Value Object>> #DAE8FC
+    BorderColor #444444
+    FontSize 13
+}
+skinparam package {
+    BorderColor #888888
+    FontSize 11
+    FontStyle bold
+}
+
+
+package AirControlAreaAggregate {
+        object AirControlArea <<Entity Root>>
+        object AreaCode <<Value Object>>
+        note right of AreaCode
+            Unique per control area.
+        end note
+        object GeographicBoundary <<Value Object>>
+        object MinFuelRequirement <<Value Object>>
+        note right of MinFuelRequirement
+            Fuel (l) that must remain on board
+            at destination within this area.
+        end note
+
+        AirControlArea "1" *-- "1" AreaCode
+        AirControlArea "1" *-- "1" GeographicBoundary
+        AirControlArea "1" *-- "1" MinFuelRequirement
+    }
+@enduml

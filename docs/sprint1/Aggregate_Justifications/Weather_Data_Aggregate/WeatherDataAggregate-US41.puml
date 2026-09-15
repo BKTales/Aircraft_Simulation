@@ -1,0 +1,124 @@
+@startuml WeatherDataRegister_SD
+title Register weather data - US041
+skinparam NoteBackgroundColor #FFFACD
+skinparam NoteBorderColor #DAA520
+
+actor WeatherPerson as User
+participant "WeatherDataUI" as UI
+participant "WeatherDataController" as Controller
+participant "WeatherDataService" as Service
+database "WeatherDataRepository" as DB
+database "AirControlAreaRepository" as DBAirControl
+
+note over User: WeatherPerson is authenticated\nand has an active session
+
+User -> UI: request weather data registration form
+activate UI
+note left of UI
+  weatherDataForm:
+  - AirControl AreaCode
+  - Pressure
+  - Humidity
+  - Temperature
+  - WindData (Direction and Speed)
+end note
+UI --> User: show form
+deactivate UI
+
+User -> UI: submit(areaCode, pressure, humidity, temperature, windData)
+activate UI
+
+UI -> Controller: createWeatherData(weatherDataForm)
+activate Controller
+
+Controller -> Service: createWeatherData(weatherDataForm)
+activate Service
+
+Service -> DBAirControl: findById(airControlAreaId)
+activate DBAirControl
+DBAirControl --> Service: Optional<AirControlArea>
+deactivate DBAirControl
+
+alt AirControlArea not found
+    Service --> Controller: AirControlAreaNotFoundException
+    deactivate Service
+    Controller --> UI: propagate error
+    deactivate Controller
+    UI --> User: display error message
+    deactivate UI
+
+else AirControlArea found
+
+    create participant "<<Value Object>>\nHumidity" as humidity
+    Service -> humidity: create(humidity)
+    activate humidity
+    note right of humidity
+      Invariant enforced at construction:
+      Must be a percentage ∈ [0, 100];
+      Throws if invalid.
+    end note
+    humidity --> Service: humidity
+    deactivate humidity
+
+    create participant "<<Value Object>>\nPressure" as pressure
+    Service -> pressure: create(pressure)
+    activate pressure
+    note right of pressure
+      Invariant enforced at construction:
+      Must be a positive number;
+      Used to compute air density and thrust-at-altitude;
+      Throws if invalid.
+    end note
+    pressure --> Service: pressure
+    deactivate pressure
+
+    create participant "<<Value Object>>\nTemperature" as temperature
+    Service -> temperature: create(temperature)
+    activate temperature
+    note right of temperature
+      Invariant enforced at construction:
+      Must be a number (can be negative);
+      Throws if invalid.
+    end note
+    temperature --> Service: temperature
+    deactivate temperature
+
+    create participant "<<Value Object>>\nWindData" as windData
+    Service -> windData: create(direction, speed)
+    activate windData
+    note right of windData
+      Invariant enforced at construction:
+      Direction must be ∈ [0, 360[, ref North;
+      Speed must be a positive number in m/s;
+      Throws if invalid.
+    end note
+    windData --> Service: windData
+    deactivate windData
+
+    create participant "<<Aggregate Root>>\nWeatherData" as WeatherData
+    Service -> WeatherData: create(areaCode, humidity, pressure, temperature, windData)
+    activate WeatherData
+    note right of WeatherData
+      References to AirControlArea
+      stored by ID only; no direct
+      object reference across
+      Aggregate boundaries.
+    end note
+    WeatherData --> Service: weatherData
+    deactivate WeatherData
+
+    Service -> DB: save(weatherData)
+    activate DB
+    DB --> Service: savedWeatherData
+    deactivate DB
+
+    Service --> Controller: success(savedWeatherData)
+    deactivate Service
+    Controller --> UI: propagate success
+    deactivate Controller
+    UI --> User: confirm "Weather Data for Area [AREACODE] registered successfully"
+    deactivate UI
+
+end
+
+@enduml

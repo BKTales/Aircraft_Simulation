@@ -1,0 +1,112 @@
+@startuml US61_Branch2_AddATCCToExistingUser
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+skinparam maxMessageSize 220
+
+title US61 - Branch 2: Add ATCC to Existing User
+
+actor "Backoffice Operator" as Operator
+participant "AddCompanyCollaboratorUI" as UI <<UI>>
+participant "AddCompanyCollaboratorController" as Ctrl <<Controller>>
+database "UserRepository" as UserRepo <<Repository>>
+database "CompanyCollaboratorUserRepository" as ColabRepo <<Repository>>
+participant "CompanyCollaboratorUserService" as Svc <<Service>>
+participant "CompanyCollaboratorUserBuilder" as ColabBld <<Builder>>
+participant "SystemUser" as SysUser <<Entity>>
+participant "CompanyCollaboratorUser" as ColabUser <<Entity>>
+
+Operator -> UI : selects "Add ATCC to Existing User"
+activate UI
+
+UI -> Ctrl : getEligibleUsers()
+activate Ctrl
+
+Ctrl -> Svc : findEligibleUsersForATCC(userRepository,\ncollaboratorRepository)
+activate Svc
+
+Svc -> UserRepo : findByActive(true)
+activate UserRepo
+UserRepo --> Svc : activeUsers: Iterable<SystemUser>
+deactivate UserRepo
+
+Svc -> ColabRepo : findAll()
+activate ColabRepo
+ColabRepo --> Svc : existingATCCs: Iterable<CompanyCollaboratorUser>
+deactivate ColabRepo
+
+Svc -> Svc : usersNoATCC = filter(activeUsers, excludeExistingATCCs)
+
+Svc --> Ctrl : usersNoATCC: List<SystemUser>
+deactivate Svc
+
+Ctrl --> UI : eligibleEmails: List<String>
+deactivate Ctrl
+
+UI --> Operator : display list of eligible users
+
+Operator -> UI : selects user email
+Operator -> UI : selects company (areaCode)
+Operator -> UI : enters security clearance, phone number
+
+UI -> Ctrl : addATCCToExistingUser(email, areaCode,\nsecurityData, phoneNumber)
+activate Ctrl
+
+Ctrl -> Svc : createATCCOnly(email, areaCode,\nsecurityData, phoneNumber,\ncollaboratorRepository,\ntransactionalContext)
+activate Svc
+
+group Transactional Context
+
+    Svc -> Svc : existingUser: SystemUser = usersNoATCC.stream()\n  .filter(u -> u.email().toString().equals(email))\n  .findFirst()
+    
+    Svc -> SysUser : retrieves reference
+    activate SysUser
+    deactivate SysUser
+
+    Svc -> Svc : roles = existingUser.roleTypes()
+
+    Svc -> ColabBld : new CompanyCollaboratorUserBuilder()
+    activate ColabBld
+    
+    Svc -> ColabBld : withSystemUser(existingUser)
+    ColabBld --> Svc : self
+    
+    Svc -> ColabBld : withIataCode(areaCode)
+    ColabBld --> Svc : self
+    
+    Svc -> ColabBld : withPhoneNumber(phoneNumber)
+    ColabBld --> Svc : self
+
+    Svc -> ColabBld : withRole(roleType)
+    ColabBld --> Svc : self
+
+    Svc -> ColabBld : withSecurityData(securityData)
+    ColabBld --> Svc : self
+    
+    Svc -> ColabBld : build()
+    ColabBld --> ColabUser : creates
+    activate ColabUser
+    ColabBld --> Svc : user
+    deactivate ColabBld
+    deactivate ColabUser
+
+    Svc -> ColabRepo : save(collaboratorUser)
+    activate ColabRepo
+    ColabRepo --> Svc : savedCollaboratorUser: CompanyCollaboratorUser
+    deactivate ColabRepo
+
+end
+
+Svc --> Ctrl : operationSuccess
+deactivate Svc
+
+Ctrl --> UI : ATCC Added Successfully
+deactivate Ctrl
+
+UI --> Operator : display success message:\n"ATCC successfully added to user"
+
+deactivate UI
+
+@enduml

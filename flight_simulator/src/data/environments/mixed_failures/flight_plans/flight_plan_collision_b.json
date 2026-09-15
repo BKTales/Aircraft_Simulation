@@ -1,0 +1,241 @@
+{
+  "ID": 100002,
+  "Type": "regular",
+  "Route": "MX002",
+  "AircraftId": "777-200ER",
+  "Mass": 215000,
+  "DepartureTime": "09:00",
+  "Leg": [
+    {
+      "Departure": {
+        "Airport": "OPO",
+        "AreaCode": "PT-N"
+      },
+      "Arrival": {
+        "Airport": "MAD",
+        "AreaCode": "ES-M"
+      },
+      "Fuel": {
+        "Quantity": 18000,
+        "Unit": "kg"
+      },
+      "Flight Profile": {
+        "Climb": [
+          {
+            "Altitude": {
+              "Value": 0,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 210,
+              "Unit": "Knots"
+            },
+            "RateClimb": {
+              "Value": 12.0,
+              "Unit": "m/s"
+            }
+          },
+          {
+            "Altitude": {
+              "Value": 5000,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 260,
+              "Unit": "Knots"
+            },
+            "RateClimb": {
+              "Value": 9.5,
+              "Unit": "m/s"
+            }
+          },
+          {
+            "Altitude": {
+              "Value": 9249,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 290,
+              "Unit": "Knots"
+            },
+            "RateClimb": {
+              "Value": 7.0,
+              "Unit": "m/s"
+            }
+          }
+        ],
+        "Descend": [
+          {
+            "Altitude": {
+              "Value": 0,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 140,
+              "Unit": "Knots"
+            },
+            "RateDescent": {
+              "Value": -5,
+              "Unit": "m/s"
+            }
+          },
+          {
+            "Altitude": {
+              "Value": 9249,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 300,
+              "Unit": "Knots"
+            },
+            "RateDescent": {
+              "Value": -10,
+              "Unit": "m/s"
+            }
+          }
+        ],
+        "Cruise": {
+          "Speed": {
+            "Value": 290,
+            "Unit": "Knots"
+          }
+        }
+      },
+      "Segments": [
+        {
+          "Mode": "climb",
+          "Start": {
+            "Latitude": 41.24,
+            "Longitude": -8.68,
+            "Altitude": {
+              "Quantity": 610,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 41.26,
+            "Longitude": -8.1,
+            "Altitude": {
+              "Quantity": 9249,
+              "Unit": "m"
+            }
+          }
+        },
+        {
+          "Mode": "cruise",
+          "Start": {
+            "Latitude": 41.26,
+            "Longitude": -8.1,
+            "Altitude": {
+              "Quantity": 9249,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 41.26,
+            "Longitude": -4.2,
+            "Altitude": {
+              "Quantity": 9249,
+              "Unit": "m"
+            }
+          }
+        },
+        {
+          "Mode": "descend",
+          "Start": {
+            "Latitude": 41.26,
+            "Longitude": -4.2,
+            "Altitude": {
+              "Quantity": 9249,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 40.5,
+            "Longitude": -3.6,
+            "Altitude": {
+              "Quantity": 610,
+              "Unit": "m"
+            }
+          }
+        }
+      ],
+      "DepartureAirport": {
+        "Id": "OPO",
+        "Icao": "OPO",
+        "Name": "Francisco de S\u00e1 Carneiro Airport",
+        "Town": "Porto",
+        "Country": "Portugal",
+        "Latitude": 41.2481003,
+        "Longitude": -8.6813898,
+        "Altitude": 69.0
+      },
+      "ArrivalAirport": {
+        "Id": "MAD",
+        "Icao": "MAD",
+        "Name": "Adolfo Su\u00e1rez Madrid Barajas International Airport",
+        "Town": "Madrid",
+        "Country": "Spain",
+        "Latitude": 40.4936,
+        "Longitude": -3.56676,
+        "Altitude": 610.0
+      }
+    }
+  ],
+  "Aircraft": {
+    "ModelId": "777-200ER",
+    "Description": "Boeing 777-200ER",
+    "Maker": "Boeing",
+    "Type": "passenger",
+    "NumberMotors": 2,
+    "Motor": "GE 90B",
+    "MotorType": "turbofan",
+    "CruiseAltitude": 13136.880000000001,
+    "CruiseSpeed": 0.84,
+    "TSFC": 1.6315459407646855e-05,
+    "LapseRateFactor": 0.7,
+    "Thrust0": 489000.0,
+    "ThrustMaxSpeed": 300000.0,
+    "MaxSpeed": 1.0,
+    "EWeight": 145149.5584,
+    "MTOW": 347451.75542,
+    "MaxPayload": 60327.78521,
+    "FuelCapacity": 145751.82974995105,
+    "VMO": 180.0555554,
+    "MMO": 0.89,
+    "WingArea": 440.0,
+    "WingSpan": 60.93,
+    "AspectRatio": 9.0,
+    "E": 0.87,
+    "CdragFunction": [
+      {
+        "Speed": 0.0,
+        "Cdrag0": 0.017
+      },
+      {
+        "Speed": 0.75,
+        "Cdrag0": 0.017
+      },
+      {
+        "Speed": 0.8,
+        "Cdrag0": 0.0185
+      },
+      {
+        "Speed": 0.85,
+        "Cdrag0": 0.021
+      },
+      {
+        "Speed": 0.9,
+        "Cdrag0": 0.024
+      },
+      {
+        "Speed": 0.95,
+        "Cdrag0": 0.034
+      },
+      {
+        "Speed": 1.0,
+        "Cdrag0": 0.06
+      }
+    ]
+  }
+}

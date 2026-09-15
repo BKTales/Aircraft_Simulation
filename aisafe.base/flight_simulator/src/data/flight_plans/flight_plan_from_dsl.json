@@ -1,0 +1,46 @@
+{
+  "ID": 771828363,
+  "Type": "regular",
+  "Route": "Test_Flight",
+  "DepartureTime": "14:30",
+  "Leg": [
+    {
+      "Departure": "LPPT",
+      "Arrival": "EGLL",
+      "Fuel": { "Quantity": 4500.5, "Unit": "kg" },
+      "Flight Profile": {
+        "Climb": [],
+        "Descend": [],
+        "Cruise": { "Speed": { "Value": 0, "Unit": "Knots" } }
+      },
+      "Segments": [
+        {
+          "Mode": "cruise",
+          "Start": {
+            "Latitude": 38.77,
+            "Longitude": -9.13,
+            "Altitude": { "Quantity": 30000, "Unit": "m" }
+          },
+          "End": {
+            "Latitude": 51.47,
+            "Longitude": -0.45,
+            "Altitude": { "Quantity": 30000, "Unit": "m" }
+          }
+        }, 
+        {
+          "Mode": "cruise",
+          "Start": {
+            "Latitude": 39.27,
+            "Longitude": -1.13,
+            "Altitude": { "Quantity": 3020, "Unit": "m" }
+          },
+          "End": {
+            "Latitude": 71.47,
+            "Longitude": -1.45,
+            "Altitude": { "Quantity": 3020, "Unit": "m" }
+          }
+        }
+      ]
+    }
+  ]
+}

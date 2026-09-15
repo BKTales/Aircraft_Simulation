@@ -1,0 +1,424 @@
+@startuml DomainModel_AISafe_v4
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam Linetype ortho
+skinparam packageStyle rectangle
+skinparam nodesep 50
+skinparam ranksep 120
+
+left to right direction
+
+skinparam object {
+    BackgroundColor<<Entity Root>> #D5E8D4
+    BackgroundColor<<Entity>>      #EAF4E1
+    BackgroundColor<<Value Object>> #DAE8FC             
+    BorderColor #444444
+    FontSize 13
+}
+skinparam package {
+    BorderColor #888888
+    FontSize 11
+    FontStyle bold
+}
+
+
+together {
+    package ManufacturerAggregate {
+        object Manufacturer <<Entity Root>>
+        object ManufacturerName <<Value Object>>
+        object CountryCode <<Value Object>>
+        Manufacturer "1" *-- "1" ManufacturerName
+        Manufacturer "1" *-- "1" CountryCode
+    }
+
+    package EngineModelAggregate {
+        object EngineModel <<Entity Root>>
+        object EngineName <<Value Object>>
+        object TSFC <<Value Object>>
+        object FuelType <<Value Object>>
+        object ThrustProfile <<Value Object>> {
+            thrustAtStatic
+            thrustAtCruise
+        }
+        note bottom of ThrustProfile
+            Both values in kN.
+            Linear behaviour between
+            the two speeds.
+        end note
+        EngineModel "1" *-- "1" EngineName
+        EngineModel "1" *-- "1" TSFC
+        EngineModel "1" *-- "1" FuelType
+        EngineModel "1" *-- "1" ThrustProfile
+    }
+}
+
+package AircraftModelAggregate {
+    object AircraftModel <<Entity Root>>
+    object AircraftType <<Value Object>>
+    note right of AircraftType
+        passenger | cargo | mixed
+    end note
+    object Motorization <<Value Object>>
+    note right of Motorization
+        turboprop | turbofan | turbojet |
+        ramjet | electric propeller | etc.
+    end note
+
+    object EngineConfiguration <<Entity>>
+    note right of EngineConfiguration
+        Certified pair (AircraftModel + EngineModel).
+        Invariant: same EngineModel cannot be added
+        twice to the same AircraftModel (US057).
+        Cannot be removed if any physical Aircraft
+        uses that configuration (US058).
+        AircraftModel must retain >= 1 certified
+        engine configuration at all times.
+    end note
+
+    object WeightSpecification <<Value Object>> {
+        mtow        
+        mzfw        
+        emptyWeight
+    }
+    object WingGeometry <<Value Object>> {
+        wingArea    
+        wingSpan    
+        aspectRatio 
+    }
+    note right of WingGeometry
+        wingArea in m², wingSpan in m.
+        aspectRatio = wingSpan² / wingArea
+    end note
+    object AerodynamicCoefficients <<Value Object>> {
+        cd0 
+        cl  
+    }
+    note right of AerodynamicCoefficients
+        cd0 = zero-lift drag coefficient.
+        C_D = cd0 + cl² / (pi * AR * e) 
+    end note
+    object PerformanceSpec <<Value Object>> {
+        serviceCeiling 
+        cruiseSpeed    
+        fuelCapacity   
+        maxRange       
+    }
+
+    object Name <<Value Object>>
+
+    AircraftModel "1" <-- "1..*" EngineConfiguration : contains >
+    AircraftModel "1" *-- "1"    AircraftType
+    AircraftModel "1" *-- "1"    Motorization
+    AircraftModel "1" *-- "1"    WeightSpecification
+    AircraftModel "1" *-- "1"    WingGeometry
+    AircraftModel "1" *-- "1"    AerodynamicCoefficients
+    AircraftModel "1" *-- "1"    PerformanceSpec
+     AircraftModel "1" *-- "1"   Name
+
+    EngineConfiguration "0..*" ..> "1" EngineModel : certifies (by EngineModelId) >
+}
+
+
+together {
+    package AirportAggregate {
+        object Airport <<Entity Root>>
+        object AirportName <<Value Object>> 
+        
+        object AirportTown <<Value Object>>
+            
+        object AirportCountry <<Value Object>> 
+        object IATACode <<Value Object>>
+        note right of IATACode
+            3-letter code, unique worldwide.
+        end note
+        object ICAOCode <<Value Object>> 
+        note right of ICAOCode
+            4-letter code, unique worldwide.
+        end note
+        object GeoCoordinates <<Value Object>> {
+            latitude 
+            longitude
+            altitude
+        }
+
+        Airport "1" *-- "1" AirportName
+        Airport "1" *-- "1" AirportTown
+        Airport "1" *-- "1" AirportCountry
+        Airport "1" *-- "1" IATACode
+        Airport "1" *-- "1" ICAOCode
+        Airport "1" *-- "1" GeoCoordinates
+    }
+
+    package AirControlAreaAggregate {
+        object AirControlArea <<Entity Root>>
+        object AreaCode <<Value Object>>
+        note right of AreaCode
+            Unique per control area.
+        end note
+        object GeographicBoundary <<Value Object>>
+        object MinFuelRequirement <<Value Object>>
+        note right of MinFuelRequirement
+            Fuel (l) that must remain on board
+            at destination within this area.
+        end note
+
+        AirControlArea "1" *-- "1" AreaCode
+        AirControlArea "1" *-- "1" GeographicBoundary
+        AirControlArea "1" *-- "1" MinFuelRequirement
+    }
+}
+
+
+    package PilotAggregate {
+    object Pilot <<Entity Root>>
+
+    object PilotCertification <<Entity>>
+    note right of PilotCertification
+        Only for PILOT collaborators.
+        Invariant: pilot must have >= 1
+        active certification (US075/US077).
+        Cannot deactivate pilot with
+        flight plans assigned (US077).
+    end note
+
+    object PilotId <<Value Object>>
+    object DueDate <<Value Object>>{
+        StartDate
+        EndDate
+    }
+
+    PilotId "1" --* "1" Pilot
+    PilotCertification "1" *-- "1" DueDate
+    PilotCertification "1..*" --* "1" Pilot
+    
+    
+}
+
+together {
+    package AirTransportCompanyAggregate {
+        object AirTransportCompany <<Entity Root>>
+        object CompanyName <<Value Object>>
+        object CompanyIATACode <<Value Object>>
+        note right of CompanyIATACode
+            2-letter airline designator.
+            Used as prefix of RouteName.
+        end note
+        object CompanyICAOCode <<Value Object>>
+        note right of CompanyICAOCode
+            2-3-letter airline designator.
+        end note
+        object CollaboratorStatus <<Value Object>>
+        note right of CollaboratorStatus
+            active | inactive
+        end note
+
+        object CompanyCollaborator <<Entity>>
+        note right of CompanyCollaborator
+            References the system user via email.
+            Invariant: collaborator belongs to
+            exactly one company at a time.
+        end note
+
+        object CollaboratorEmail <<Value Object>>
+        object CollaboratorName <<Value Object>>
+        object CollaboratorPosition <<Value Object>>
+        object SecurityClearance <<Value Object>> {
+            expiryDate           
+            skillsAssessmentDate
+        }
+        note right of SecurityClearance
+            Auto-expires; renewed every 5 years.
+            Managed by Admin / Backoffice Operator.
+        end note
+
+        AirTransportCompany "1" *-- "1"    CompanyName
+        AirTransportCompany "1" *-- "1"    CompanyIATACode
+        AirTransportCompany "1" *-- "1"    CompanyICAOCode
+        AirTransportCompany "1" <-- "0..*" CompanyCollaborator : employs >
+        CompanyCollaborator "1" *-- "1"    CollaboratorStatus
+        CompanyCollaborator "1" *-- "1"    CollaboratorEmail
+        CompanyCollaborator "1" *-- "1"    CollaboratorPosition
+        CompanyCollaborator "1" *-- "1"    CollaboratorName
+        CompanyCollaborator "1" *-- "1"    SecurityClearance
+        Pilot "0..1" <.. "1" CompanyCollaborator
+
+    }
+
+
+    package AircraftAggregate {
+        object Aircraft <<Entity Root>>
+        object AircraftRegistration <<Value Object>>
+        object RegistrationCountry <<Value Object>>
+        object CabinConfiguration <<Value Object>>
+        object OperationalStatus <<Value Object>> 
+        note right of OperationalStatus
+            active | decommissioned
+            Decommissioned aircraft cannot be
+            assigned to new flights (US071).
+        end note
+        object NumberOfFlightCrew <<Value Object>>
+        Aircraft "1" *-- "1" AircraftRegistration
+        Aircraft "1" *-- "1" RegistrationCountry
+        Aircraft "1" *-- "1" CabinConfiguration
+        Aircraft "1" *-- "1" OperationalStatus
+        Aircraft "1" *-- "1" NumberOfFlightCrew
+    }
+
+    package RouteAggregate {
+        object Route <<Entity Root>>
+        object RouteName <<Value Object>>
+        note right of RouteName
+            Format: XX + up to 4 digits (e.g. TP123).
+            XX = company IATA code. Must be unique.
+        end note
+        object DeactivationDate <<Value Object>>
+        note right of DeactivationDate
+            No new flights after this date (US074).
+            Existing planned flights are preserved.
+        end note
+        Route "1" *-- "1"    RouteName
+        Route "1" *-- "0..1" DeactivationDate
+    }
+}
+
+
+package FlightAggregate {
+    object Flight <<Entity Root>>
+
+    object FlightDesignator <<Value Object>>
+    note right of FlightDesignator
+        Formato: xxn(n)(n)(n)(a)
+        Ex: TP1234A
+    end note
+
+    object FlightType <<Value Object>>
+    note right of FlightType
+        regular | charter
+    end note
+
+    object FlightSchedule <<Value Object>> {
+        scheduledDeparture
+        scheduledArrival
+    }
+    note right of FlightSchedule
+       If flight type is charter
+    end note
+
+    object FlightRecurringSchedule <<Value Object>>
+    note right of FlightRecurringSchedule
+       If flight type is regular
+    end note
+
+    object RecurringScheduleEntry <<Value Object>>
+
+    object FlightPlan <<Value Object>>
+    note bottom of FlightPlan
+       Invariants:
+        - Starts in draft (US080).
+        - Pilot must belong to the route's company (US080).
+        - Cannot be submitted for decommissioned aircraft (US071).
+        - Cannot be submitted on a deactivated route (US074).
+        - FuelLoad >= MinFuelRequirement of the destination AirControlArea
+    end note
+
+    object FlightPlanStatus <<Value Object>>
+    note right of FlightPlanStatus
+        draft -> submitted_for_simulation
+        -> sim_approved | sim_rejected
+    end note
+
+    object FuelLoad <<Value Object>>
+
+    object FlightLoad <<Value Object>> {
+        passengerCount
+        cargoWeight
+    }
+
+    FlightPlan "1" *-- "1" FlightPlanStatus
+    FlightPlan "1" *-- "1" FuelLoad
+    Flight "1" *-- "1" FlightLoad
+    Flight "1" *-- "1" FlightDesignator
+    Flight "1" *-- "1" FlightType
+    Flight "1" *-- "1" FlightSchedule
+    Flight "1" *-- "1" FlightPlan
+    Flight "1" *-- "1" FlightRecurringSchedule
+    FlightRecurringSchedule "1" *-- "1..*" RecurringScheduleEntry
+}
+
+
+
+package FlightSimulationReport {
+
+    object FlightSimulationReport <<Entity Root>>
+    note right of FlightSimulationReport
+        Result returned by external C simulator.
+        Internal simulation mechanics are out of scope.
+    end note
+
+    object FlightStatus <<Value Object>> {
+        FlightId
+        FlightExecutionStatus
+    } 
+
+    object SafetyViolation <<Value Object>>{
+        FlightId
+        Timestamp
+        Position
+    }
+
+    object ScheduleFlightStatus <<Value Object>>{
+        FlightId
+        ValidationStatus
+    }
+
+
+    FlightSimulationReport "0..*" ..> "1" Flight : reportOf (by FlightDesignator) >
+    FlightSimulationReport "1" *-- "1..*" FlightStatus
+    FlightSimulationReport "1" *-- "0..*" SafetyViolation
+    FlightSimulationReport "1" *-- "1..*" ScheduleFlightStatus
+}
+
+package WeatherDataAggregate {
+    object WeatherData <<Entity Root>>
+    object WindData <<Value Object>> {
+        direction
+        speed 
+    }
+    note right of WindData
+        direction in degrees (0-360, rel. North),
+        speed in m/s (§3.2).
+    end note
+    object Temperature <<Value Object>>
+    object Pressure <<Value Object>>
+    object Humidity <<Value Object>>
+    object Date <<Value Object>>
+    WeatherData "1" *-- "1" WindData
+    WeatherData "1" *-- "1" Humidity
+    WeatherData "1" *-- "1" Pressure
+    WeatherData "1" *-- "1" Temperature
+    WeatherData "1" *-- "1" Date
+}
+
+Flight "0..*" --> "0..1" WeatherData : usesWeather
+AircraftModel      "0..*" ..> "1" Manufacturer    : madeBy (by ManufacturerId) >
+EngineModel        "0..*" ..> "1" Manufacturer    : madeBy (by ManufacturerId) >
+
+Airport            "0..*" ..> "1" AirControlArea  : inArea (by AreaCode) >
+
+Aircraft           "0..*" ..> "1" AirTransportCompany : ownedBy (by CompanyId) >
+Aircraft           "0..*" ..> "1" AircraftModel        : ofModel (by ModelId) >
+Aircraft           "0..*" ..> "1" EngineModel        : equippedWith (by EngineModelId) >
+Route              "0..*" ..> "1" AirTransportCompany  : operatedBy (by CompanyId) >
+Route              "0..*" ..> "1" Airport               : origin (by IATACode) >
+Route              "0..*" ..> "1" Airport               : destination (by IATACode) >
+
+Flight         "0..*" ..> "1" Route     : follows >
+Flight         "0..*" ..> "1" Aircraft  : uses >
+Flight         "0..*" ..> "1" Pilot     : assignedTo >
+
+PilotCertification "0..*" ..> "1" AircraftModel : certifiedFor (by ModelId) >
+
+WeatherData "0..*" ..> "1" AirControlArea : observedIn (by AreaCode) >
+
+
+@enduml

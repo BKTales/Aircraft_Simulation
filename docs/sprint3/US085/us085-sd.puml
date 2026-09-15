@@ -1,0 +1,164 @@
+@startuml us085-sd
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+skinparam maxMessageSize 220
+
+title US085 - Test/Validate Flight Plan
+
+actor "Pilot" as PILOT
+participant "ValidateFlightPlanUI\n(console or TCP op 45)" as UI <<UI>>
+participant "ValidateFlightPlanController" as CTRL <<Controller>>
+participant "ValidateFlightPlanService" as SVC <<Service>>
+database "FlightRepository" as REPO <<Repository>>
+participant "FlightDslParser" as DSL <<DSL / US120>>
+participant "FlightSimulationService" as SIMSVC <<Service>>
+participant "ProcessSimulatorGateway" as GW <<Gateway>>
+participant "flight_simulator" as SIM <<C Process>>
+participant "SimulationReportParser" as RPT <<Parser>>
+
+PILOT -> UI : selectFlightPlan(flightDesignator)
+activate UI
+
+UI -> CTRL : validateFlightPlan(flightDesignator)
+activate CTRL
+
+CTRL -> CTRL : ensureAuthenticatedPilot()
+
+CTRL -> SVC : validate(flightDesignator, authenticatedPilot)
+activate SVC
+
+' --- preflight ---
+SVC -> REPO : findByDesignator(flightDesignator)
+activate REPO
+REPO --> SVC : Optional<Flight>
+deactivate REPO
+
+alt flight not found
+    SVC --> CTRL : ValidateFlightPlanResult.blocked("Flight not found")
+    deactivate SVC
+    CTRL --> UI : blocked result
+    deactivate CTRL
+    UI --> PILOT : "Flight not found"
+    deactivate UI
+else flight found
+    SVC -> SVC : preflightChecks(flight, pilot)\n  — plan != null\n  — status == DRAFT\n  — pilot owns plan\n  — business rules (area, interval)
+
+    alt preflight failed
+        SVC --> CTRL : ValidateFlightPlanResult.blocked(reason)
+        deactivate SVC
+        CTRL --> UI : blocked result
+        deactivate CTRL
+        UI --> PILOT : reason (e.g. "Only a DRAFT plan can be validated")
+        deactivate UI
+    else preflight ok
+        ' --- DSL parse gate ---
+        SVC -> DSL : parse(plan.dslContent())
+        activate DSL
+        DSL --> SVC : ParseResult
+        deactivate DSL
+
+        alt DSL invalid
+            SVC --> CTRL : ValidateFlightPlanResult.dslFailure(errors)
+            deactivate SVC
+            CTRL --> UI : errors (line, column, message)
+            deactivate CTRL
+            UI --> PILOT : DSL errors — C simulator not invoked
+            deactivate UI
+        else DSL valid
+            ' --- in-memory status transition (not persisted) ---
+            SVC -> SVC : flight.transitionFlightPlanStatus(SUBMITTED_FOR_SIMULATION)
+
+            ' --- single-flight simulation ---
+            SVC -> SIMSVC : simulateEligibleFlights(area, intervalStart, intervalEnd,\n  [targetFlight], designator)
+            activate SIMSVC
+
+            SIMSVC -> SIMSVC : exportFlightPlanJson(flight) → FS_FLIGHT_PLANS_DIR\nexportWeatherSnapshot()  → FS_WEATHER_FILE
+
+            SIMSVC -> GW : run(binary,\n  FS_FLIGHT_PLANS_DIR, FS_REPORTS_DIR,\n  FS_NON_INTERACTIVE=1,\n  FS_TARGET_FLIGHT_ID=<hash>)
+            activate GW
+            GW -> SIM : ProcessBuilder + env vars
+            activate SIM
+
+            alt C process exits != 0 or timeout
+                SIM --> GW : exit code / IOException
+                deactivate SIM
+                GW --> SIMSVC : SimulatorExecutionException(message, outputLines)
+                deactivate GW
+                SIMSVC --> SVC : throws SimulatorExecutionException
+                deactivate SIMSVC
+
+                SVC -> SVC : flight.transitionFlightPlanStatus(SIM_REJECTED)
+                SVC -> REPO : save(flight)
+                activate REPO
+                REPO --> SVC : ok
+                deactivate REPO
+                SVC --> CTRL : ValidateFlightPlanResult.rejected(reason, outputLines)
+                deactivate SVC
+                CTRL --> UI : rejected result
+                deactivate CTRL
+                UI --> PILOT : rejection message (fuel / altitude / infra failure)
+                deactivate UI
+            else C process exits 0
+                SIM --> GW : report.csv
+                deactivate SIM
+                GW --> SIMSVC : outputLines
+                deactivate GW
+
+                SIMSVC -> RPT : parse(report.csv)
+                activate RPT
+                RPT --> SIMSVC : SimulationResult
+                deactivate RPT
+
+                SIMSVC --> SVC : SimulationResult
+                deactivate SIMSVC
+
+                SVC -> SVC : passed() AND targetFlight execution_status == SUCCESS?
+
+                alt SIM_APPROVED
+                    SVC -> SVC : flight.transitionFlightPlanStatus(SIM_APPROVED)
+                else SIM_REJECTED
+                    SVC -> SVC : flight.transitionFlightPlanStatus(SIM_REJECTED)
+                end
+
+                SVC -> REPO : save(flight)
+                activate REPO
+                REPO --> SVC : ok
+                deactivate REPO
+
+                SVC --> CTRL : ValidateFlightPlanResult(pass/fail, reason, simulationLog)
+                deactivate SVC
+
+                CTRL --> UI : outcome
+                deactivate CTRL
+
+                UI --> PILOT : test result (SIM_APPROVED or SIM_REJECTED + reason)
+                deactivate UI
+            end
+        end
+    end
+end
+
+note right of SVC
+  SUBMITTED_FOR_SIMULATION is only held
+  in memory during C process execution.
+  Only SIM_APPROVED or SIM_REJECTED
+  are persisted via save(flight).
+  Re-validation requires status == DRAFT
+  (achieved via US080 replace or
+  US082 weather attach — see AC8).
+end note
+
+note right of SIMSVC
+  FS_* environment variables:
+  FS_FLIGHT_PLANS_DIR  — temp dir with per-flight JSON
+  FS_REPORTS_DIR       — temp dir for report.csv
+  FS_NON_INTERACTIVE   — "1"
+  FS_TARGET_FLIGHT_ID  — stable hash of flight designator
+  FS_WEATHER_FILE      — weather_snapshot.json (when present)
+end note
+
+@enduml

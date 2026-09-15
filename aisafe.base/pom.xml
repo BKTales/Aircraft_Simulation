@@ -1,0 +1,157 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <groupId>eapli</groupId>
+    <artifactId>aisafe</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <properties>
+        <maven.compiler.source>17</maven.compiler.source>
+        <maven.compiler.target>17</maven.compiler.target>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <eapli.framework.core.version>26.0.3_RELEASE</eapli.framework.core.version>
+        <eapli.framework.authz.version>26.0.3_RELEASE</eapli.framework.authz.version>
+        <eapli.framework.pubsub.version>26.0.3_RELEASE</eapli.framework.pubsub.version>
+
+        <eapli.framework.core.version-snapshot>26.0.0</eapli.framework.core.version-snapshot>
+        <eapli.framework.authz.version-snapshot>23.0.0</eapli.framework.authz.version-snapshot>
+        <eapli.framework.pubsub.version-snapshot>23.0.0</eapli.framework.pubsub.version-snapshot>
+        <junit.version>5.10.1</junit.version>
+        <lombok.version>1.18.38</lombok.version>
+        <jacoco.version>0.8.11</jacoco.version>
+    </properties>
+
+    <modules>
+        <module>aisafe.flight-simulator</module>
+        <module>aisafe.infrastructure</module>
+        <module>aisafe.core</module>
+        <module>aisafe.rcomp.protocol</module>
+        <module>aisafe.rcomp.server</module>
+        <module>aisafe.rcomp.tcpclient</module>
+        <module>aisafe.rcomp.loggingserver</module>
+        <module>aisafe.app.common.console</module>
+        <module>aisafe.app.backoffice.console</module>
+        <module>aisafe.app.flightmanagement.console</module>
+        <module>aisafe.bootstrap</module>
+        <module>aisafe.persistence</module>
+    </modules>
+
+    <dependencies>
+        <dependency>
+            <groupId>org.bitbucket.pag_isep.eapliframework</groupId>
+            <artifactId>eapli.framework.core</artifactId>
+            <version>${eapli.framework.core.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bitbucket.pag_isep.eapliframework</groupId>
+            <artifactId>eapli.framework.infrastructure.authz</artifactId>
+            <version>${eapli.framework.authz.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>org.bitbucket.pag_isep.eapliframework</groupId>
+            <artifactId>eapli.framework.infrastructure.pubsub</artifactId>
+            <version>${eapli.framework.pubsub.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-api</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+        <dependency>
+            <groupId>org.junit.jupiter</groupId>
+            <artifactId>junit-jupiter-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.junit.vintage</groupId>
+            <artifactId>junit-vintage-engine</artifactId>
+            <version>${junit.version}</version>
+            <scope>test</scope>
+        </dependency>
+
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+
+    <repositories>
+        <repository>
+            <id>jitpack.io</id>
+            <url>https://jitpack.io</url>
+        </repository>
+    </repositories>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>org.hibernate.orm</groupId>
+                <artifactId>hibernate-core</artifactId>
+                <version>6.4.4.Final</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>3.13.0</version>
+                <configuration>
+                    <release>17</release>
+                    <useIncrementalCompilation>false</useIncrementalCompilation>
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>3.5.2</version>
+                <configuration>
+                    <forkCount>1</forkCount>
+                </configuration>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jacoco</groupId>
+                <artifactId>jacoco-maven-plugin</artifactId>
+                <version>${jacoco.version}</version>
+                <executions>
+                    <execution>
+                        <id>prepare-agent</id>
+                        <goals>
+                            <goal>prepare-agent</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>report</id>
+                        <phase>test</phase>
+                        <goals>
+                            <goal>report</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>

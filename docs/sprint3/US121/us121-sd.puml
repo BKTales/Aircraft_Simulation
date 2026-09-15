@@ -1,0 +1,109 @@
+@startuml us121-sd
+
+autonumber
+
+actor "Pilot" as PILOT
+
+participant "ImportFlightPlanFromFileUI" as UI <<UI>>
+participant "ImportFlightPlanFromFileController" as CTRL <<Controller>>
+participant "FlightPlanFileImportStrategyFactory" as FACT <<Factory>>
+participant "FlightPlanFileImportStrategy" as STRAT <<Strategy>>
+participant "FlightDslParser" as DSL <<US120>>
+participant "ImportFlightPlanService" as SVC <<Service>>
+participant "FlightPlanDescriptorMapper" as MAP
+participant "FlightPlanJsonExporter" as EXP
+database "Repositories" as REPO
+
+PILOT -> UI : select supported file\n(.txt / .dsl / no ext.)
+activate UI
+
+UI -> CTRL : parseFile(path)
+activate CTRL
+
+CTRL -> CTRL : ensure authenticated Pilot
+
+CTRL -> FACT : parse(path)
+activate FACT
+
+alt unsupported extension
+    FACT --> CTRL : FlightPlanFileImportResult\n(errors: unsupported format)
+    CTRL --> UI : validation errors
+    UI --> PILOT : import aborted
+else supported format
+    FACT -> STRAT : parse(path)\n(.txt | .dsl | no ext.)
+    activate STRAT
+
+    STRAT -> STRAT : read UTF-8 file
+
+    STRAT -> DSL : parse(content)
+    activate DSL
+    DSL --> STRAT : ParseResult
+    deactivate DSL
+
+    STRAT --> FACT : FlightPlanFileImportResult\n(descriptor + canonicalDslContent)
+    deactivate STRAT
+
+    FACT --> CTRL : FlightPlanFileImportResult
+    deactivate FACT
+
+    alt DSL invalid
+        CTRL --> UI : validation errors
+        UI --> PILOT : import aborted
+    else DSL valid
+        UI -> PILOT : show descriptor summary\nselect aircraft registration
+        PILOT --> UI : aircraft choice + confirm
+
+        UI -> CTRL : importValidPlan(path, aircraftReg)
+
+        CTRL -> FACT : parse(path)
+        note right of FACT
+          Factory picks strategy
+          by extension again on confirm
+        end note
+        FACT -> STRAT : parse(path)
+        STRAT -> DSL : parse(content)
+        DSL --> STRAT : ParseResult
+        STRAT --> FACT : result
+        FACT --> CTRL : FlightPlanFileImportResult
+
+        CTRL -> SVC : import(descriptor,\ncanonicalDslContent, pilot, aircraftReg)
+        activate SVC
+
+        SVC -> REPO : find aircraft by registration
+        activate REPO
+        REPO --> SVC : aircraft or empty
+        deactivate REPO
+
+        alt aircraft not found or designator exists
+            SVC --> CTRL : failure
+            CTRL --> UI : error message
+            UI --> PILOT : import failed
+        else ok
+            SVC -> EXP : toSimulatorJson(descriptor, aircraftId, massKg)
+            activate EXP
+            EXP --> SVC : jsonContent
+            deactivate EXP
+
+            SVC -> MAP : toFlight(...)
+            activate MAP
+            MAP --> SVC : Flight aggregate
+            deactivate MAP
+
+            SVC -> REPO : save(Flight)
+            activate REPO
+            REPO --> SVC : saved
+            deactivate REPO
+
+            SVC --> CTRL : success (DRAFT)
+            deactivate SVC
+
+            CTRL --> UI : success
+            UI --> PILOT : flight imported
+        end
+    end
+end
+
+deactivate CTRL
+deactivate UI
+
+@enduml

@@ -1,0 +1,45 @@
+@startuml
+skinparam shadowing false
+skinparam roundcorner 10
+skinparam Linetype ortho
+skinparam packageStyle rectangle
+skinparam nodesep 50
+skinparam ranksep 120
+
+skinparam object {
+    BackgroundColor<<Entity Root>> #D5E8D4
+    BackgroundColor<<Entity>>      #EAF4E1
+    BackgroundColor<<Value Object>> #DAE8FC
+    BorderColor #444444
+    FontSize 13
+}
+skinparam package {
+    BorderColor #888888
+    FontSize 11
+    FontStyle bold
+}
+
+
+package WeatherDataAggregate {
+    object WeatherData <<Entity Root>>{
+        airControlAreaId
+    }
+    object WindData <<Value Object>> {
+        direction
+        speed
+    }
+    note right of WindData
+        direction in degrees (0-360, rel. North),
+        speed in m/s (§3.2).
+    end note
+    object Temperature <<Value Object>>
+    object Pressure <<Value Object>>
+    object Humidity <<Value Object>>
+    object Date <<Value Object>>
+    WeatherData "1" *-- "1" WindData
+    WeatherData "1" *-- "1" Humidity
+    WeatherData "1" *-- "1" Pressure
+    WeatherData "1" *-- "1" Temperature
+    WeatherData "1" *-- "1" Date
+}
+@enduml

@@ -1,0 +1,66 @@
+@startuml
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam maxMessageSize 220
+
+actor "Backoffice Operator" as Operator
+participant "EngineModelUI" as UI <<UI>>
+participant "RegisterEngineModelController" as Ctrl <<Controller>>
+participant "EngineModelApplicationService" as AppSvc <<Service>>
+database "ManufacturerRepository" as MfgRepo <<Repository>>
+database "EngineModelRepository" as Repo <<Repository>>
+participant "EngineModelFactory" as Factory <<Factory>>
+participant "EngineModel" as AR <<Aggregate Root>>
+
+Operator -> UI : selects "Register Engine Model"
+activate UI
+UI --> Operator : requests data (engineName, manufacturerId,\n thrustAtStatic, thrustAtCruise, tsfc, fuelType)
+Operator -> UI : enters requested data
+UI -> Ctrl : registerEngineModel(engineName,\n manufacturerId, thrustAtStatic,\n thrustAtCruise, tsfc, fuelType)
+activate Ctrl
+
+    Ctrl -> AppSvc : registerEngineModel(engineName, manufacturerId,...)
+    activate AppSvc
+
+        AppSvc -> MfgRepo : existsById(manufacturerId)
+        MfgRepo --> AppSvc : exists (boolean)
+
+        alt manufacturer does not exist
+            AppSvc --> Ctrl : error("Engine Manufacturer not found")
+        else manufacturer exists
+
+            AppSvc -> Repo : existsByNameAndManufacturer(engineName, manufacturerId)
+            Repo --> AppSvc : exists (boolean)
+
+            alt engine model already exists
+                AppSvc --> Ctrl : error("Engine Model name exists for this manufacturer")
+            else engine model is unique
+
+                AppSvc -> Factory : createEngineModel(engineName, manufacturerId,...)
+                activate Factory
+                    Factory -> AR : create(engineName, manufacturerId,...)
+                    Factory --> AppSvc : newEngineModel
+                deactivate Factory
+
+                AppSvc -> Repo : save(newEngineModel)
+                AppSvc --> Ctrl : success
+            end
+        end
+    deactivate AppSvc
+
+    alt success
+        Ctrl --> UI : Engine Model Created
+    else error
+        Ctrl --> UI : Registration Failed (Conflict)
+    end
+    deactivate Ctrl
+
+    alt success
+        UI --> Operator : display success message
+    else error
+        UI --> Operator : display error message
+    end
+deactivate UI
+@enduml

@@ -1,0 +1,74 @@
+@startuml US111_SimulationSummaryReport
+
+autonumber
+
+actor "Flight Control Operator" as FCO
+
+participant "SimulateFlightsInAreaUI" as UI <<UI>>
+participant "SimulateFlightsInAreaController" as CTRL <<Controller>>
+participant "FlightSimulationService" as SVC <<Service>>
+participant "FlightEligibilityService" as ELIG <<Service>>
+database "FlightRepository" as FREPO <<Repository>>
+participant "flight_simulator" as SIM <<C / US109>>
+participant "SimulationReportParser" as PARSER <<Application>>
+participant "SimulationSummaryReportGenerator" as GEN <<Application>>
+participant "SimulationReportsPathResolver" as PATH <<Infrastructure>>
+collections "Filesystem\n(reports/simulations/)" as FS
+
+FCO -> UI : confirm area simulation (US100)
+activate UI
+
+UI -> CTRL : simulateFlightsInArea(area, start, end)
+activate CTRL
+
+CTRL -> CTRL : ensure role is Flight Control Operator
+CTRL -> SVC : simulateFlightsInArea(...)
+activate SVC
+
+SVC -> FREPO : find scheduled flights
+FREPO --> SVC : flights
+
+SVC -> ELIG : filterEligible + export JSON
+ELIG --> SVC : eligible flights + temp plans dir
+
+SVC -> SIM : ProcessBuilder (FS_FLIGHT_PLANS_DIR, FS_REPORTS_DIR)
+activate SIM
+SIM --> SVC : exit code 0, report.csv, report.txt
+deactivate SIM
+
+alt simulator failure (exit != 0 or no CSV)
+    SVC --> CTRL : SimulatorExecutionException
+    CTRL --> UI : error message
+    UI --> FCO : simulation failed — no summary
+else simulation succeeded
+    SVC -> PARSER : parse(report.csv, areaCode)
+    activate PARSER
+    PARSER --> SVC : FlightSimulationReport
+    deactivate PARSER
+
+    SVC -> PATH : resolveSummaryPath(areaCode, timestamp)
+    activate PATH
+    PATH --> SVC : permanent path
+    deactivate PATH
+
+    SVC -> GEN : generate(SimulationSummaryRequest)
+    activate GEN
+    GEN -> FS : write {area}/{timestamp}-summary.txt
+    FS --> GEN : ok
+    opt archive raw US109 files
+        GEN -> FS : copy report.csv / report.txt
+    end
+    GEN --> SVC : summary path
+    deactivate GEN
+
+    SVC --> CTRL : SimulationResult (report, summaryPath)
+    deactivate SVC
+
+    CTRL --> UI : result
+    deactivate CTRL
+
+    UI --> FCO : formatted summary + file path
+    deactivate UI
+end
+
+@enduml

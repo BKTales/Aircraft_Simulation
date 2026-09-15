@@ -1,0 +1,129 @@
+@startuml US073_SD_CreateFlightRoute
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+skinparam maxMessageSize 200
+
+skinparam participant {
+    BackgroundColor #EBF5FB
+    BorderColor #2471A3
+    FontSize 12
+}
+skinparam actor {
+    BackgroundColor #FDFEFE
+    BorderColor #444444
+}
+skinparam note {
+    BackgroundColor #FFFDE7
+    BorderColor #F9A825
+}
+
+title US073 — Create a Flight Route
+ 
+actor       "ATCC"                         as ATCC
+participant "CreateRouteUI"                as UI
+participant "CreateRouteController"        as CTRL
+database "RouteRepository"              as RouteRepo
+database "AirTransportCompanyRepository" as CompanyRepo
+database "AirportRepository"            as AirportRepo
+participant "Route"                        as Route       <<Aggregate Root>>
+participant "RouteName"                    as RouteName   <<Value Object>>
+
+
+note left of ATCC
+    ATCC is authenticated and has an active SecurityClearance
+end note
+
+ATCC -> UI : request route creation form
+activate UI
+UI -> CTRL : getAtccCompany(atccEmail)
+activate CTRL
+CTRL -> CompanyRepo : findByCollaboratorEmail(atccEmail)
+activate CompanyRepo
+CompanyRepo --> CTRL : AirTransportCompany (with CompanyIATACode)
+deactivate CompanyRepo
+CTRL --> UI : companyIATACode, companyId
+deactivate CTRL
+UI --> ATCC : show form\n(prefilled company IATA code)
+deactivate UI
+
+ATCC -> UI : submit(routeNumber, originIATA, destinationIATA)
+note right of ATCC
+    routeNumber: up to 4 digits
+    RouteName will be: <CompanyIATA> + routeNumber
+    e.g., "TP" + "123" → "TP123"
+end note
+
+activate UI
+UI -> CTRL : createRoute(companyId, routeNumber, originIATA, destinationIATA)
+activate CTRL
+
+' --- Validate RouteName uniqueness ---
+CTRL -> RouteName ** : create(companyIATACode, routeNumber)
+activate RouteName
+note right of RouteName
+    Invariant enforced at construction:
+    format = 2 uppercase letters + 1-4 digits.
+    Throws if format is invalid.
+end note
+RouteName --> CTRL : routeName
+deactivate RouteName
+
+CTRL -> RouteRepo : findByName(routeName)
+activate RouteRepo
+RouteRepo --> CTRL : Optional<Route> (empty)
+deactivate RouteRepo
+
+alt Route name already exists
+    CTRL --> UI : error("Route name already taken")
+    UI --> ATCC : display error message
+else Route name is unique
+
+    ' --- Validate origin airport ---
+    CTRL -> AirportRepo : ofIATACode(originIATA)
+    activate AirportRepo
+    AirportRepo --> CTRL : originAirport
+    deactivate AirportRepo
+
+    ' --- Validate destination airport ---
+    CTRL -> AirportRepo : ofIATACode(destinationIATA)
+    activate AirportRepo
+    AirportRepo --> CTRL : destinationAirport
+    deactivate AirportRepo
+
+    note over CTRL
+        Invariant check: origin ≠ destination
+        (a route must connect two distinct airports).
+    end note
+
+    ' --- Create Route aggregate ---
+    CTRL -> Route ** : create(routeName, companyId,\n         originAirportIATA, destinationAirportIATA)
+    activate Route
+    note right of Route
+        References to Company and Airports
+        are stored by ID only (by CompanyId,
+        by IATACode) — no direct object reference
+        across Aggregate boundaries.
+        DeactivationDate is absent (route is ACTIVE).
+    end note
+    Route --> CTRL : route
+    deactivate Route
+
+    ' --- Persist ---
+    CTRL -> RouteRepo : save(route)
+    activate RouteRepo
+    RouteRepo --> CTRL : savedRoute
+    deactivate RouteRepo
+
+    CTRL --> UI : success(savedRoute)
+    UI --> ATCC : confirm "Route TP123 created successfully"
+
+end
+
+deactivate CTRL
+deactivate UI
+
+@enduml

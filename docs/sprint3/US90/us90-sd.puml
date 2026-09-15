@@ -1,0 +1,145 @@
+@startuml us90-sd
+skinparam backgroundColor #FEFEFE
+skinparam sequenceMessageAlign center
+
+title US090 - Remote Access Logging (End-to-End Sequence Diagram)
+
+actor User as user
+participant "Remote Client\n(TCP)" as client
+participant "ClientHandler\n(Session)" as handler
+participant "RemoteAccessLogger\n(Event Builder)" as logger
+participant "UdpClient\n(UDP Sender)" as udpclient
+participant "UdpServer\n(UDP Receiver)" as udpserver
+participant "LogEventStore\n(Event Storage)" as store
+
+== Login Attempt - Success ==
+
+user -> client: Connect & authenticate\n(username, password, role)
+client -> handler: TCP ProtocolFrame\n[opcode=10, LOGIN]
+activate handler
+handler -> handler: parseCredentials()
+handler -> handler: validateCredentials()\nuser exists & password OK
+handler -> handler: extractUsername()\nresolveService()\nfrom role
+
+handler -> logger: log(LOGIN_OK, username,\nclientIp, clientPort,\nservice, null)
+activate logger
+logger -> logger: formatEvent()\ntimestamp|username|ip|port|service|LOGIN_OK
+
+logger -> udpclient: send(payload)
+activate udpclient
+udpclient -> udpclient: createDatagramSocket()
+udpclient -> udpclient: encodeUTF8()
+deactivate udpclient
+
+udpclient -> udpserver: UDP Datagram\n[host:2227]
+activate udpserver
+udpserver -> udpserver: receive(packet)
+udpserver -> udpserver: parseMessage()\nfrom packet data
+udpserver -> store: addEvent(message)
+activate store
+store -> store: normalizeEvent()
+store -> store: EVENTS.addLast()
+store -> store: updateActiveUsers()\nfor LOGIN_OK
+deactivate store
+deactivate udpserver
+deactivate logger
+
+handler -> handler: createSession(username, role)
+handler -> client: TCP Response\n[status=OK]
+deactivate handler
+client -> user: Login Success
+
+== Session Active ==
+
+user -> client: Execute command\n(e.g., list flights)
+client -> handler: TCP ProtocolFrame\n[opcode=40+]
+activate handler
+handler -> handler: checkRole()\nverify PILOT/ATCC/WEATHER
+handler -> handler: executeOperation()
+handler -> client: TCP Response\n[status=OK, data]
+deactivate handler
+client -> user: Display result
+
+== User Logout ==
+
+user -> client: Logout command
+client -> handler: TCP ProtocolFrame\n[opcode=11, LOGOUT]
+activate handler
+handler -> logger: log(LOGOUT, username,\nclientIp, clientPort,\nservice, null)
+activate logger
+logger -> logger: formatEvent()\ntimestamp|username|ip|port|service|LOGOUT
+logger -> udpclient: send(payload)
+activate udpclient
+udpclient -> udpserver: UDP Datagram\n[host:2227]
+deactivate udpclient
+activate udpserver
+udpserver -> store: addEvent(message)
+activate store
+store -> store: normalizeEvent()
+store -> store: EVENTS.addLast()
+store -> store: updateActiveUsers()\nremove username
+deactivate store
+deactivate udpserver
+deactivate logger
+
+handler -> handler: destroySession()
+handler -> client: TCP Response\n[status=OK]
+deactivate handler
+client -> user: Logged out
+
+== Login Attempt - Failure ==
+
+user -> client: Connect with bad credentials
+client -> handler: TCP ProtocolFrame\n[opcode=10, LOGIN]
+activate handler
+handler -> handler: parseCredentials()
+handler -> handler: validateCredentials()\nFAILS - bad password
+
+handler -> logger: log(LOGIN_FAIL, null,\nclientIp, clientPort,\nservice, null)
+activate logger
+logger -> logger: formatEvent()\ntimestamp|unknown|ip|port|service|LOGIN_FAIL
+logger -> udpclient: send(payload)
+activate udpclient
+udpclient -> udpserver: UDP Datagram\n[host:2227]
+deactivate udpclient
+activate udpserver
+udpserver -> store: addEvent(message)
+activate store
+store -> store: normalizeEvent()
+store -> store: EVENTS.addLast()
+store -> store: updateActiveUsers()\nno-op for LOGIN_FAIL
+deactivate store
+deactivate udpserver
+deactivate logger
+
+handler -> client: TCP Response\n[status=FAILED_LOGIN]
+deactivate handler
+client -> user: Authentication Failed
+
+== Disconnect (Unintended) ==
+
+user -> user: Network lost or\nclient crash
+client -> handler: Socket closed/broken
+activate handler
+handler -> handler: exception caught\nin receive loop
+handler -> logger: log(DISCONNECT, username,\nclientIp, clientPort,\nservice, null)
+activate logger
+logger -> logger: formatEvent()\ntimestamp|username|ip|port|service|DISCONNECT
+logger -> udpclient: send(payload)
+activate udpclient
+udpclient -> udpserver: UDP Datagram\n[host:2227]
+deactivate udpclient
+activate udpserver
+udpserver -> store: addEvent(message)
+activate store
+store -> store: normalizeEvent()
+store -> store: EVENTS.addLast()
+store -> store: updateActiveUsers()\nremove username
+deactivate store
+deactivate udpserver
+deactivate logger
+
+handler -> handler: destroySession()\ncleanup
+deactivate handler
+
+@enduml

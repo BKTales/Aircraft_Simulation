@@ -1,0 +1,34 @@
+@startuml us120-consumers
+
+skinparam componentStyle rectangle
+
+title US120 — FlightDslParser consumers
+
+package "US121 importfile" {
+  interface "FlightPlanFileImportStrategy" as IF
+  [FlightPlanFileImportStrategyFactory]
+  [TxtFlightPlanFileImportStrategy]
+  [DslFlightPlanFileImportStrategy]
+  [ExtensionlessFlightPlanFileImportStrategy]
+}
+
+package "eapli.aisafe.dsl (US120)" {
+  [FlightDslParser] <<api>>
+}
+
+[FlightPlanFileImportStrategyFactory] ..> IF
+[TxtFlightPlanFileImportStrategy] ..|> IF
+[DslFlightPlanFileImportStrategy] ..|> IF
+[ExtensionlessFlightPlanFileImportStrategy] ..|> IF
+
+[TxtFlightPlanFileImportStrategy] --> [FlightDslParser] : parse(content)
+[DslFlightPlanFileImportStrategy] --> [FlightDslParser] : parse(content)
+[ExtensionlessFlightPlanFileImportStrategy] --> [FlightDslParser] : parse(content)
+
+note right of [FlightDslParser]
+  Also used directly by US085
+  (stored dslContent) and
+  parse(Path) for tests/tools
+end note
+
+@enduml

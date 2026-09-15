@@ -1,0 +1,59 @@
+@startuml US072_ListCompanyFleet
+
+autonumber
+
+actor "Company Collaborator" as CC
+
+participant "ListCompanyFleetUI" as UI <<UI>>
+participant "ListFleetController" as CTRL <<Controller>>
+participant "CompanyCollaboratorSession" as SESSION
+participant "AircraftService" as SVC <<Service>>
+database "AircraftRepository" as AREPO <<Repository>>
+database "AircraftModelRepository" as MREPO <<Repository>>
+
+CC -> UI : choose list option (full / model / maker /\n capacity / age)
+activate UI
+
+UI -> CTRL : modelsUsedInCompanyFleet()\nor manufacturersUsedInCompanyFleet()\n[when applicable]
+activate CTRL
+CTRL -> SESSION : requireAirTransportCompanyCollaborator(...)
+SESSION --> CTRL : company IATA
+CTRL -> SVC : modelsUsedInFleet / manufacturersUsedInFleet
+SVC -> AREPO : findByOwnerCompany(companyIata)
+SVC --> CTRL : distinct models or makers
+CTRL --> UI : selection list
+deactivate CTRL
+
+CC -> UI : confirm filter parameters\n(incl. MORE / LESS / EXACT for capacity & age)
+UI -> CTRL : listFleet(FleetListCriteria)
+activate CTRL
+
+CTRL -> SESSION : requireAirTransportCompanyCollaborator(...)
+SESSION --> CTRL : company IATA
+
+CTRL -> SVC : listFleet(companyIata, criteria)
+activate SVC
+
+alt US072 unfiltered
+    SVC -> AREPO : findByOwnerCompany(companyIata)
+else US072a by model
+    SVC -> AREPO : findByOwnerCompanyAndModel(companyIata, modelId)
+else US072b by maker
+    SVC -> AREPO : findByOwnerCompany(companyIata)
+    SVC -> MREPO : findByID (per aircraft)
+    note right of SVC: keep aircraft whose model.manufacturerId matches
+else US072c / US072d numeric
+    SVC -> AREPO : findByOwnerCompany(companyIata)
+    note right of SVC: filter seats or ageInYears\nwith FleetNumericComparison
+end
+
+AREPO --> SVC : aircraft
+SVC --> CTRL : aircraft
+deactivate SVC
+
+CTRL --> UI : fleet
+UI --> CC : printed table (registration, model,\n status, seats, age)
+deactivate CTRL
+deactivate UI
+
+@enduml

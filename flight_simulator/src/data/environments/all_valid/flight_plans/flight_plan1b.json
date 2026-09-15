@@ -1,0 +1,227 @@
+{
+  "ID": 789013,
+  "Type": "charter",
+  "Route": "TP457",
+  "AircraftId": "A380",
+  "Mass": 560000,
+  "DepartureTime": "14:30",
+  "Leg": [
+    {
+      "Departure": {
+        "Airport": "STN",
+        "AreaCode": "GB-LON"
+      },
+      "Arrival": {
+        "Airport": "FCO",
+        "AreaCode": "IT-RM"
+      },
+      "Fuel": {
+        "Quantity": 298000,
+        "Unit": "kg"
+      },
+      "Flight Profile": {
+        "Climb": [
+          {
+            "Altitude": {
+              "Value": 0,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 200,
+              "Unit": "Knots"
+            },
+            "RateClimb": {
+              "Value": 11.0,
+              "Unit": "m/s"
+            }
+          },
+          {
+            "Altitude": {
+              "Value": 3000,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 260,
+              "Unit": "Knots"
+            },
+            "RateClimb": {
+              "Value": 8.5,
+              "Unit": "m/s"
+            }
+          }
+        ],
+        "Descend": [
+          {
+            "Altitude": {
+              "Value": 0,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 145,
+              "Unit": "Knots"
+            },
+            "RateDescent": {
+              "Value": -5,
+              "Unit": "m/s"
+            }
+          },
+          {
+            "Altitude": {
+              "Value": 3000,
+              "Unit": "m"
+            },
+            "Speed": {
+              "Value": 280,
+              "Unit": "Knots"
+            },
+            "RateDescent": {
+              "Value": -12,
+              "Unit": "m/s"
+            }
+          }
+        ],
+        "Cruise": {
+          "Speed": {
+            "Value": 440,
+            "Unit": "Knots"
+          }
+        }
+      },
+      "Segments": [
+        {
+          "Mode": "climb",
+          "Start": {
+            "Latitude": 41.75,
+            "Longitude": 12.1,
+            "Altitude": {
+              "Quantity": 35,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 41.78,
+            "Longitude": 12.18,
+            "Altitude": {
+              "Quantity": 3000,
+              "Unit": "m"
+            }
+          }
+        },
+        {
+          "Mode": "cruise",
+          "Start": {
+            "Latitude": 41.78,
+            "Longitude": 12.18,
+            "Altitude": {
+              "Quantity": 3000,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 41.795,
+            "Longitude": 12.22,
+            "Altitude": {
+              "Quantity": 3000,
+              "Unit": "m"
+            }
+          }
+        },
+        {
+          "Mode": "descend",
+          "Start": {
+            "Latitude": 41.795,
+            "Longitude": 12.22,
+            "Altitude": {
+              "Quantity": 3000,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 41.7999,
+            "Longitude": 12.2462,
+            "Altitude": {
+              "Quantity": 14,
+              "Unit": "m"
+            }
+          }
+        }
+      ],
+      "DepartureAirport": {
+        "Id": "STN",
+        "Icao": "STN",
+        "Name": "London Stansted Airport",
+        "Town": "London",
+        "Country": "United Kingdom",
+        "Latitude": 51.885,
+        "Longitude": 0.235,
+        "Altitude": 35.0
+      },
+      "ArrivalAirport": {
+        "Id": "FCO",
+        "Icao": "FCO",
+        "Name": "Leonardo Da Vinci (Fiumicino) International Airport",
+        "Town": "Rome",
+        "Country": "Italy",
+        "Latitude": 41.8044444,
+        "Longitude": 12.2508333,
+        "Altitude": 5.0
+      }
+    }
+  ],
+  "Aircraft": {
+    "ModelId": "A380",
+    "Description": "Aibus A380",
+    "Maker": "Airbus",
+    "Type": "passenger",
+    "NumberMotors": 4,
+    "Motor": "RR Trent 970",
+    "MotorType": "turbofan",
+    "CruiseAltitude": 13106.400000000001,
+    "CruiseSpeed": 0.85,
+    "TSFC": 1.6315459407646855e-05,
+    "LapseRateFactor": 0.7,
+    "Thrust0": 348310.0,
+    "ThrustMaxSpeed": 180000.0,
+    "MaxSpeed": 0.9,
+    "EWeight": 276800.0,
+    "MTOW": 575000.0,
+    "MaxPayload": 64000.0,
+    "FuelCapacity": 320000.0,
+    "VMO": 180.0555554,
+    "MMO": 0.89,
+    "WingArea": 845.0,
+    "WingSpan": 79.75,
+    "AspectRatio": 7.53,
+    "E": 0.84,
+    "CdragFunction": [
+      {
+        "Speed": 0.0,
+        "Cdrag0": 0.02
+      },
+      {
+        "Speed": 0.75,
+        "Cdrag0": 0.02
+      },
+      {
+        "Speed": 0.8,
+        "Cdrag0": 0.0204
+      },
+      {
+        "Speed": 0.85,
+        "Cdrag0": 0.022
+      },
+      {
+        "Speed": 0.9,
+        "Cdrag0": 0.037
+      },
+      {
+        "Speed": 0.95,
+        "Cdrag0": 0.038
+      },
+      {
+        "Speed": 1.0,
+        "Cdrag0": 0.04
+      }
+    ]
+  }
+}

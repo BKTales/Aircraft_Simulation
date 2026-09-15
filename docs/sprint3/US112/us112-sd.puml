@@ -1,0 +1,83 @@
+@startuml US112_MonthlyStatisticsReport
+
+autonumber
+
+actor "Flight Control Operator" as FCO
+
+participant "GenerateMonthlyStatisticsReportUI" as UI <<UI>>
+participant "GenerateMonthlyStatisticsReportController" as CTRL <<Controller>>
+participant "FlightControlOperatorSession" as SESSION <<Application>>
+participant "GenerateMonthlyStatisticsReportService" as SVC <<Service>>
+participant "SimulationSummaryArchiveCollector" as COLL <<Application>>
+participant "SimulationSummaryFileParser" as PARSER <<Application>>
+participant "MonthlyStatisticsAggregator" as AGG <<Application>>
+participant "MonthlyStatisticsReportGenerator" as GEN <<Application>>
+participant "MonthlyReportsPathResolver" as PATH <<Infrastructure>>
+collections "Filesystem\nreports/simulations/" as SIM_FS
+collections "Filesystem\nreports/monthly/" as MON_FS
+
+FCO -> UI : open Generate Monthly Report (US112)
+activate UI
+
+UI -> CTRL : generate(year, month)
+activate CTRL
+
+CTRL -> CTRL : ensure role FLIGHT_CONTROL_OPERATOR
+CTRL -> SESSION : requireFlightControlOperator()
+activate SESSION
+SESSION --> CTRL : assigned AreaCode
+deactivate SESSION
+
+CTRL -> SVC : generateMonthlyReport(area, yearMonth)
+activate SVC
+
+SVC -> COLL : collectSummaries(area, yearMonth)
+activate COLL
+COLL -> SIM_FS : list *-summary.txt
+activate SIM_FS
+SIM_FS --> COLL : matching files
+deactivate SIM_FS
+loop each summary file
+    COLL -> PARSER : parse(content)
+    activate PARSER
+    PARSER --> COLL : SimulationSummaryRecord
+    deactivate PARSER
+end
+COLL --> SVC : List<SimulationSummaryRecord>
+deactivate COLL
+
+alt no summaries for month
+    SVC --> CTRL : NoMonthlySimulationDataException
+    CTRL --> UI : error message
+    UI --> FCO : no report generated
+else summaries found
+    SVC -> AGG : aggregate(records)
+    activate AGG
+    AGG --> SVC : MonthlyStatisticsSnapshot
+    deactivate AGG
+
+    SVC -> PATH : resolveMonthlyFile(area, yearMonth)
+    activate PATH
+    PATH --> SVC : permanent path
+    deactivate PATH
+
+    SVC -> GEN : generate(MonthlyReportRequest)
+    activate GEN
+    GEN -> MON_FS : write {yyyy-MM}-statistics.txt
+    activate MON_FS
+    MON_FS --> GEN : ok
+    deactivate MON_FS
+    GEN --> SVC : MonthlyReportResult
+    deactivate GEN
+
+    SVC --> CTRL : result (content + path)
+    deactivate SVC
+
+    CTRL --> UI : result
+    deactivate CTRL
+
+    UI --> FCO : formatted report + file path
+    deactivate UI
+end
+
+@enduml

@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css">
+<style>
+html,body,#map{height:100%;margin:0}
+#status{position:absolute;z-index:1000;top:10px;left:10px;background:#fff;padding:6px 10px;border-radius:6px;font-family:sans-serif;max-width:420px}
+#panel{position:absolute;z-index:1000;top:10px;right:10px;background:#fff;padding:10px;border-radius:6px;font-family:sans-serif;
+       max-height:80vh;overflow-y:auto;min-width:240px;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+#panel h3{margin:0 0 6px 0;font-size:14px}
+#simtime{font-weight:bold;margin-bottom:8px}
+.flight-row{font-size:12px;padding:4px 0;border-bottom:1px solid #eee}
+.flight-row b{color:#0066cc}
+.flight-row.row-done{color:#555}
+.flight-row.row-done b{color:#333}
+.flight-row.row-success b{color:#1a7f37}
+.flight-row.row-collision{color:#b00020}
+.flight-row.row-collision b{color:#b00020}
+.flight-row.row-fuel{color:#c45c00}
+.flight-row.row-fuel b{color:#c45c00}
+.flight-row.row-altitude{color:#8b5a00}
+.flight-row.row-altitude b{color:#8b5a00}
+.flight-row.row-comm{color:#5c4d7a}
+.flight-row.row-comm b{color:#5c4d7a}
+.flight-row .reason{font-weight:600;margin-bottom:2px}
+.flight-row .warn{color:#c45c00;font-weight:600}
+.plane-icon{font-size:22px}
+.plane-done{filter:hue-rotate(140deg) saturate(3)}
+#legend{position:absolute;z-index:1000;bottom:10px;left:10px;background:#fff;padding:8px 10px;border-radius:6px;font-family:sans-serif;font-size:12px;box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+#legend div{display:flex;align-items:center;margin:3px 0}
+#legend .swatch{width:14px;height:14px;border-radius:3px;margin-right:6px;display:inline-block}
+</style>
+</head>
+<body>
+<div id="map"></div>
+<div id="status">a ligar...</div>
+<div id="panel">
+  <h3>Simulação</h3>
+  <div id="simtime">--</div>
+  <div id="flights"></div>
+</div>
+<div id="legend">
+  <div><span class="swatch" style="background:#0066cc"></span> Em curso</div>
+  <div><span class="swatch" style="background:#1a7f37"></span> Concluído com sucesso</div>
+  <div><span class="swatch" style="background:#b00020"></span> Colisão</div>
+  <div><span class="swatch" style="background:#c45c00"></span> Sem combustível</div>
+  <div><span class="swatch" style="background:#8b5a00"></span> Altitude baixa</div>
+  <div><span class="swatch" style="background:#5c4d7a"></span> Comunicação perdida</div>
+  <div><span class="swatch" style="background:orange;opacity:0.55;border:1px solid #ff6600"></span> Raio horizontal 5 km</div>
+  <div>💥 Colisão detetada</div>
+</div>
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+<script>
+const map = L.map('map').setView([38.7, -9.1], 6);
+L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
+
+let markers = {}, trails = {}, circles = {}, lastPos = {}, flightData = {};
+let lastSimTime = -1; // Variável para rastrear o tempo
+const COLLISION_RADIUS_M = 5000;
+const LOW_ALTITUDE_M = 228;
+
+const END_REASONS = {
+  'SUCCESS': { label: 'Concluído com sucesso', rowClass: 'row-success' },
+  'COLLISION': { label: 'Terminado por colisão', rowClass: 'row-collision' },
+  'OUT OF FUEL': { label: 'Sem combustível', rowClass: 'row-fuel' },
+  'LOW ALTITUDE': { label: 'Altitude baixa', rowClass: 'row-altitude' },
+  'COMMUNICATION LOST': { label: 'Comunicação perdida', rowClass: 'row-comm' }
+};
+
+const PLANE_ICON_OFFSET_DEG = -45;
+
+// Função de limpeza
+function clearViewer() {
+    Object.values(markers).forEach(m => m.remove());
+    Object.values(trails).forEach(t => t.remove());
+    Object.values(circles).forEach(c => c.remove());
+    // Limpar objetos globais
+    for (const id in markers) delete markers[id];
+    for (const id in trails) delete trails[id];
+    for (const id in circles) delete circles[id];
+    for (const id in lastPos) delete lastPos[id];
+    for (const id in flightData) delete flightData[id];
+    document.getElementById('flights').innerHTML = '';
+}
+
+function bearing(lat1, lon1, lat2, lon2) {
+  const toRad = d => d * Math.PI / 180;
+  const y = Math.sin(toRad(lon2-lon1)) * Math.cos(toRad(lat2));
+  const x = Math.cos(toRad(lat1))*Math.sin(toRad(lat2)) -
+            Math.sin(toRad(lat1))*Math.cos(toRad(lat2))*Math.cos(toRad(lon2-lon1));
+  return (Math.atan2(y, x) * 180 / Math.PI + 360) % 360;
+}
+
+function planeIcon(heading, done) {
+  return L.divIcon({
+    className: '',
+    html: `<div class="plane-icon ${done ? 'plane-done' : ''}" style="transform:rotate(${heading + PLANE_ICON_OFFSET_DEG}deg)">✈️</div>`,
+    iconSize: [24,24],
+    iconAnchor: [12,12]
+  });
+}
+
+function collisionIcon() {
+  return L.divIcon({
+    className: '',
+    html: '<div class="plane-icon plane-done">💥</div>',
+    iconSize: [24,24],
+    iconAnchor: [12,12]
+  });
+}
+
+function collisionCircleStyle() {
+  return {
+    radius: COLLISION_RADIUS_M,
+    color: '#ff6600',
+    weight: 2,
+    dashArray: '8 5',
+    fillColor: '#ff9900',
+    fillOpacity: 0.16
+  };
+}
+
+function formatSimTime(t) {
+  const d = new Date(t * 1000);
+  const pad = n => String(n).padStart(2, '0');
+  return `${pad(d.getUTCDate())}/${pad(d.getUTCMonth()+1)}/${d.getUTCFullYear()} — ` +
+         `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
+}
+
+function formatDuration(seconds) {
+  const h = Math.floor(seconds / 3600);
+  const m = Math.floor((seconds % 3600) / 60);
+  return `${h}h${String(m).padStart(2,'0')}m`;
+}
+
+function reasonMeta(reason) {
+  return END_REASONS[reason] || { label: reason || 'Terminado', rowClass: 'row-done' };
+}
+
+function finishFlightOnMap(id, heading, reason) {
+  const marker = markers[id];
+  if (!marker) return;
+  if (reason === 'COLLISION') {
+    marker.setIcon(collisionIcon());
+  } else {
+    marker.setIcon(planeIcon(heading || 0, true));
+  }
+  if (trails[id]) trails[id].setStyle({ color: '#cc0000' });
+  if (circles[id]) circles[id].remove();
+}
+
+function fitMapToFlights() {
+  const pts = Object.values(lastPos);
+  if (!pts.length) return;
+  if (pts.length === 1) {
+    map.setView(pts[0], Math.max(map.getZoom(), 8));
+    return;
+  }
+  map.fitBounds(L.latLngBounds(pts), { padding: [80, 80], maxZoom: 9 });
+}
+
+function renderPanel() {
+  const rows = Object.values(flightData)
+    .sort((a,b) => a.id - b.id)
+    .map(f => {
+      if (f.done) {
+        const dep = formatSimTime(f.departureT);
+        const arr = formatSimTime(f.arrivalT);
+        const dur = formatDuration(f.arrivalT - f.departureT);
+        const meta = reasonMeta(f.endReason);
+        return `<div class="flight-row row-done ${meta.rowClass}">
+          <b>Voo ${f.id}</b><br>
+          <div class="reason">${meta.label}</div>
+          Partida: ${dep}<br>
+          Chegada: ${arr}<br>
+          Duração: ${dur}
+        </div>`;
+      }
+      const warn = f.noFuel ? '<div class="warn">⚠ Sem combustível</div>' : '';
+      return `<div class="flight-row">
+        <b>Voo ${f.id}</b><br>
+        ${warn}
+        Vel: ${f.spd.toFixed(0)} kt &nbsp; Alt: ${f.alt.toFixed(0)} m<br>
+        Fuel: ${f.fuel.toFixed(0)} kg &nbsp; Fase: ${['CLIMB','CRUISE','DESCEND'][f.phase]}
+      </div>`;
+    }).join('');
+  document.getElementById('flights').innerHTML = rows;
+}
+
+function markFlightEnded(id, endReason, arrivalT) {
+  const prev = flightData[id] || { id };
+  flightData[id] = {
+    ...prev,
+    done: true,
+    endReason,
+    arrivalT: arrivalT ?? prev.lastT ?? prev.arrivalT
+  };
+  const heading = lastPos[id] && lastPos[id].length >= 2 ? 0 : 0;
+  finishFlightOnMap(id, heading, endReason);
+  renderPanel();
+}
+
+const es = new EventSource('/stream');
+es.onopen = () => document.getElementById('status').textContent = 'ligado';
+es.onerror = () => document.getElementById('status').textContent = 'ligação perdida';
+
+es.onmessage = (ev) => {
+  let r;
+  try {
+    r = JSON.parse(ev.data);
+  } catch {
+    return;
+  }
+
+  // Lógica de reset
+  if (r.t < lastSimTime) {
+      clearViewer();
+  }
+  lastSimTime = r.t;
+
+  if (r.type === 'collision') {
+    [r.id1, r.id2].forEach(id => markFlightEnded(id, 'COLLISION', flightData[id]?.lastT));
+    document.getElementById('status').textContent =
+      `COLISÃO: voo ${r.id1} vs ${r.id2} (dist ${r.dist_m.toFixed(0)}m, alt Δ${r.alt_diff.toFixed(0)}m)`;
+    return;
+  }
+
+  if (r.type === 'terminated') {
+    markFlightEnded(r.id, r.status, r.t);
+    const meta = reasonMeta(r.status);
+    document.getElementById('status').textContent = `${meta.label}: voo ${r.id}`;
+    return;
+  }
+
+  document.getElementById('simtime').textContent = formatSimTime(r.t);
+
+  const prev = flightData[r.id] || {};
+  const wasDone = !!prev.done;
+  const departureT = prev.departureT ?? r.t;
+
+  flightData[r.id] = {
+    id: r.id,
+    spd: r.spd,
+    alt: r.alt,
+    fuel: r.fuel,
+    phase: r.phase,
+    noFuel: !!r.no_fuel,
+    done: !!r.done || !!prev.done,
+    endReason: prev.endReason || (r.done ? 'SUCCESS' : null),
+    departureT,
+    lastT: r.t,
+    arrivalT: r.done ? r.t : (prev.arrivalT ?? null)
+  };
+  renderPanel();
+
+  if (wasDone || flightData[r.id].endReason === 'COLLISION') return;
+
+  const prevPos = lastPos[r.id];
+  const heading = prevPos ? bearing(prevPos[0], prevPos[1], r.lat, r.lon) : 0;
+  lastPos[r.id] = [r.lat, r.lon];
+
+  if (!markers[r.id]) {
+    markers[r.id] = L.marker([r.lat, r.lon], { icon: planeIcon(heading, false) }).addTo(map);
+    trails[r.id] = L.polyline([[r.lat, r.lon]], { weight: 3, opacity: 0.85, color: '#0066cc' }).addTo(map);
+    circles[r.id] = L.circle([r.lat, r.lon], collisionCircleStyle()).addTo(map);
+  } else {
+    markers[r.id].setIcon(planeIcon(heading, false));
+    markers[r.id].setLatLng([r.lat, r.lon]);
+    trails[r.id].addLatLng([r.lat, r.lon]);
+    circles[r.id].setLatLng([r.lat, r.lon]);
+  }
+
+  fitMapToFlights();
+
+  markers[r.id].bindPopup(
+    `<b>Voo ${r.id}</b><br>
+     Alt: ${r.alt.toFixed(0)} m<br>
+     Vel: ${r.spd.toFixed(0)} kt<br>
+     Fuel: ${r.fuel.toFixed(0)} kg<br>
+     Fase: ${['CLIMB','CRUISE','DESCEND'][r.phase]}<br>
+     Raio de colisão: ${(COLLISION_RADIUS_M / 1000).toFixed(0)} km`
+  );
+
+  if (r.done) {
+    markFlightEnded(r.id, 'SUCCESS', r.t);
+    return;
+  }
+
+  if (r.no_fuel) {
+    markFlightEnded(r.id, 'OUT OF FUEL', r.t);
+    document.getElementById('status').textContent = `FIM: voo ${r.id} sem combustível`;
+    return;
+  }
+};
+</script>
+</body>
+</html>

@@ -1,0 +1,86 @@
+@startuml SD_FlightSimulationReportAggregate
+
+title FlightSimulationReport Aggregate
+
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+skinparam maxMessageSize 220
+
+actor "Flight Control\nOperator" as FCO
+participant "SimulationUI\n<<UI>>" as UI
+participant "SimulationController\n<<Controller>>" as SC
+database "FlightRepository\n<<Repository>>" as FR
+database "FlightSimulationReportRepository\n<<Repository>>" as FSRR
+participant "Flight\n<<Entity Root>>" as F
+participant "FlightPlan\n<<Value Object>>" as FP
+participant "FlightSimulationReport\n<<Entity Root>>" as FSR
+participant "C Simulator\n<<External>>" as CS
+
+FCO -> UI : runSimulation(flightDesignator)
+activate UI
+    UI -> SC : runSimulation(flightDesignator)
+    activate SC
+
+        SC -> FR : findByDesignator(flightDesignator)
+        activate FR
+            FR --> SC : Flight
+        deactivate FR
+
+        SC -> F : getFlightPlan()
+        activate F
+            F --> SC : FlightPlan
+        deactivate F
+
+        SC -> FP : getStatus()
+        activate FP
+            FP --> SC : FlightPlanStatus
+        deactivate FP
+
+        alt FlightPlanStatus == submitted_for_simulation
+            SC -> CS : simulate(flightDesignator)
+            activate CS
+                CS --> SC : results[]\n(flightStatuses, safetyViolations,\nscheduleStatuses)
+            deactivate CS
+
+            SC -> FSR : create(flightDesignator)
+            activate FSR
+                FSR -> FSR : validateInvariant()\n[1..* FlightStatus required]
+                FSR -> FSR : addFlightStatuses(1..*)
+                FSR -> FSR : addSafetyViolations(0..*)\n[may be empty]
+                FSR -> FSR : addScheduleStatuses(1..*)
+                FSR --> SC : report created
+            deactivate FSR
+
+            SC -> F : getFlightPlan()
+            activate F
+                F --> SC : FlightPlan
+            deactivate F
+
+            SC -> FP : updateStatus(sim_approved | sim_rejected)
+            activate FP
+                FP --> SC : ok
+            deactivate FP
+
+            SC -> FR : save(Flight)
+            activate FR
+                FR --> SC : ok
+            deactivate FR
+
+            SC -> FSRR : save(FlightSimulationReport)
+            activate FSRR
+                FSRR --> SC : ok
+            deactivate FSRR
+
+            SC --> UI : FlightSimulationReport
+            UI --> FCO : Simulation report displayed
+        else FlightPlanStatus != submitted_for_simulation
+            SC --> UI : error
+    deactivate SC
+    UI --> FCO : Error – FlightPlan not submitted for simulation
+deactivate UI
+end
+
+@enduml

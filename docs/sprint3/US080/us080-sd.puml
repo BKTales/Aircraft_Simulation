@@ -1,0 +1,92 @@
+@startuml us080-sd
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam maxMessageSize 220
+
+title US080 - Create Flight Plan (simplified)
+
+actor Pilot
+participant "CreateFlightPlanUI" as UI <<UI>>
+participant "CreateFlightPlanController" as CTRL <<Controller>>
+participant "CreateFlightPlanService" as SVC <<Service>>
+participant "DirectRouteFlightPlanComposer" as COMP <<Composer>>
+database "Repositories" as REPO <<Repository>>
+participant "Flight" as DOM <<Aggregate>>
+
+Pilot -> UI : Flights > Create flight plan (US080)
+activate UI
+
+UI -> CTRL : listSelectableRoutes / aircraft / pilots
+activate CTRL
+note right of CTRL : ensurePilot()\nsession username only
+CTRL -> SVC : listSelectableRoutes / aircraft / pilots\n(sessionPilotUsername)
+activate SVC
+SVC -> REPO : routes / aircraft / pilots\n(active by company)
+activate REPO
+REPO --> SVC : company-scoped data
+deactivate REPO
+SVC --> CTRL : sorted lists
+deactivate SVC
+CTRL --> UI : active company data
+deactivate CTRL
+
+UI --> Pilot : wizard (schedule, route, aircraft,\npilot, fuel, load, suffix)
+Pilot --> UI : inputs + confirm
+
+UI -> CTRL : createFlightPlan(request)
+activate CTRL
+note right of CTRL : ensurePilot()
+CTRL -> SVC : createFlightPlan(request)
+activate SVC
+
+SVC -> COMP : compose(designator, route, times, fuel, load)
+activate COMP
+COMP --> SVC : descriptor + dslContent + jsonContent
+deactivate COMP
+
+SVC -> REPO : findByDesignator(designator)
+activate REPO
+REPO --> SVC : existing flight (optional)
+deactivate REPO
+
+alt designator already exists
+    alt status SUBMITTED or SIM_APPROVED\nand confirmReplace = false
+        SVC --> CTRL : needsConfirmation
+        CTRL --> UI : prompt user (y/n)
+        UI --> Pilot : replace existing plan?
+        Pilot --> UI : y / n
+        alt user confirms
+            UI -> CTRL : createFlightPlan(request,\nconfirmReplace=true)
+            CTRL -> SVC : createFlightPlan(...)
+            note over SVC : same compose path;\nreplaceFlightPlan + save
+        else user cancels
+            UI --> Pilot : operation cancelled
+        end
+    else status DRAFT or SIM_REJECTED\n(or user confirmed replace)
+        SVC -> DOM : replaceFlightPlan(...)
+        activate DOM
+        DOM --> SVC : flight updated (DRAFT plan)
+        deactivate DOM
+        SVC -> REPO : save(flight)
+        SVC --> CTRL : replaced(designator)
+    end
+else new designator
+    SVC -> DOM : createDraftForRoute(...)
+    activate DOM
+    DOM --> SVC : new Flight + FlightPlan (DRAFT)
+    deactivate DOM
+    SVC -> REPO : save(flight)
+    SVC --> CTRL : success(designator)
+end
+
+deactivate SVC
+CTRL --> UI : CreateFlightPlanResult
+deactivate CTRL
+
+UI -> UI : FlightPlanCreationSummary.print(...)
+UI --> Pilot : creation / replacement summary
+deactivate UI
+
+@enduml

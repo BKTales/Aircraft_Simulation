@@ -1,0 +1,63 @@
+@startuml US076_ListPilotRoster_Updated
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+skinparam maxMessageSize 220
+
+title US076 - List Active Pilots for Authenticated Company (Refactored)
+
+actor "Air Transport Company\nCollaborator" as Operator
+participant "ListPilotUsersUI" as UI <<UI>>
+participant "ListPilotUsersController" as Ctrl <<Controller>>
+participant "CompanyCollaboratorUserService" as ColabSvc <<Service>>
+participant "PilotCollaboratorUserService" as PilotSvc <<Service>>
+database "CompanyCollaboratorUserRepository" as ColabRepo <<Repository>>
+database "PilotUserRepository" as PilotRepo <<Repository>>
+participant "ListPilotResult" as Result <<Result>>
+
+Operator -> UI : selects "List Active Pilots"
+activate UI
+
+UI -> Ctrl : activePilotUsersForCompany()
+activate Ctrl
+
+Ctrl -> ColabSvc : findATCC(collaboratorUserRepository, username)
+activate ColabSvc
+ColabSvc -> ColabRepo : findByUsername(username)
+ColabRepo --> ColabSvc : userCollab
+deactivate ColabSvc
+
+Ctrl -> ColabSvc : getCompany(userCollab)
+activate ColabSvc
+ColabSvc --> Ctrl : company
+deactivate ColabSvc
+
+Ctrl -> PilotSvc : findActivePilotsByCompanyResult(pilotUserRepository, company)
+activate PilotSvc
+
+PilotSvc -> PilotRepo : findPilotByCompanyAndActive(company)
+activate PilotRepo
+PilotRepo --> PilotSvc : Iterable<PilotUser>
+deactivate PilotRepo
+
+PilotSvc -> Result : success(Iterable<ResponsePilotCollaboratorDTO>)
+activate Result
+Result --> PilotSvc : ListPilotResult
+deactivate Result
+
+PilotSvc --> Ctrl : ListPilotResult
+deactivate PilotSvc
+
+Ctrl --> UI : ListPilotResult
+deactivate Ctrl
+
+alt isSuccess()
+    UI --> Operator : displays pilot roster
+else isError()
+    UI --> Operator : displays error message
+end
+deactivate UI
+
+@enduml

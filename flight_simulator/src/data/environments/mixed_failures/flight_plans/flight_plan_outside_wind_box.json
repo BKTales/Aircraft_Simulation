@@ -1,0 +1,141 @@
+{
+  "ID": 888002,
+  "Type": "charter",
+  "Route": "OUT-BOX",
+  "AircraftId": "A380",
+  "Legs": [
+    {
+      "Departure": "MAD",
+      "Arrival": "EAST",
+      "DepartureTime": "2026-06-02 10:00",
+      "ArrivalTime": "2026-06-02 11:00",
+      "Fuel": {
+        "Quantity": 298000,
+        "Unit": "kg"
+      },
+      "Load": {
+        "PassengerCount": 0,
+        "PassengerWeight": {
+          "Quantity": 0,
+          "Unit": "kg"
+        },
+        "CargoWeight": {
+          "Quantity": 0,
+          "Unit": "kg"
+        },
+        "TotalPayloadMassKg": 0
+      },
+      "FlightProfile": {
+        "Climb": [
+          {
+            "Altitude": 0,
+            "IAS": 250
+          }
+        ],
+        "Descend": [
+          {
+            "Altitude": 0,
+            "IAS": 200
+          }
+        ]
+      },
+      "Segments": [
+        {
+          "Mode": "cruise",
+          "Start": {
+            "Latitude": 41.0,
+            "Longitude": 2.0,
+            "Altitude": {
+              "Quantity": 8000,
+              "Unit": "m"
+            }
+          },
+          "End": {
+            "Latitude": 41.2,
+            "Longitude": 2.4,
+            "Altitude": {
+              "Quantity": 8000,
+              "Unit": "m"
+            }
+          }
+        }
+      ],
+      "DepartureAirport": {
+        "Id": "MAD",
+        "Icao": "MAD",
+        "Name": "Adolfo Su\u00e1rez Madrid Barajas International Airport",
+        "Town": "Madrid",
+        "Country": "Spain",
+        "Latitude": 40.4936,
+        "Longitude": -3.56676,
+        "Altitude": 610.0
+      },
+      "ArrivalAirport": {
+        "Id": "EAST",
+        "Icao": "EAST",
+        "Name": "East Test",
+        "Town": "East",
+        "Country": "Spain",
+        "Latitude": 41.2,
+        "Longitude": 2.4,
+        "Altitude": 500.0
+      }
+    }
+  ],
+  "Aircraft": {
+    "ModelId": "A380",
+    "Description": "Aibus A380",
+    "Maker": "Airbus",
+    "Type": "passenger",
+    "NumberMotors": 4,
+    "Motor": "RR Trent 970",
+    "MotorType": "turbofan",
+    "CruiseAltitude": 13106.400000000001,
+    "CruiseSpeed": 0.85,
+    "TSFC": 1.6315459407646855e-05,
+    "LapseRateFactor": 0.7,
+    "Thrust0": 348310.0,
+    "ThrustMaxSpeed": 180000.0,
+    "MaxSpeed": 0.9,
+    "EWeight": 276800.0,
+    "MTOW": 575000.0,
+    "MaxPayload": 64000.0,
+    "FuelCapacity": 320000.0,
+    "VMO": 180.0555554,
+    "MMO": 0.89,
+    "WingArea": 845.0,
+    "WingSpan": 79.75,
+    "AspectRatio": 7.53,
+    "E": 0.84,
+    "CdragFunction": [
+      {
+        "Speed": 0.0,
+        "Cdrag0": 0.02
+      },
+      {
+        "Speed": 0.75,
+        "Cdrag0": 0.02
+      },
+      {
+        "Speed": 0.8,
+        "Cdrag0": 0.0204
+      },
+      {
+        "Speed": 0.85,
+        "Cdrag0": 0.022
+      },
+      {
+        "Speed": 0.9,
+        "Cdrag0": 0.037
+      },
+      {
+        "Speed": 0.95,
+        "Cdrag0": 0.038
+      },
+      {
+        "Speed": 1.0,
+        "Cdrag0": 0.04
+      }
+    ]
+  }
+}

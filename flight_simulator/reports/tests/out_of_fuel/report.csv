@@ -1,0 +1,13 @@
+metric,value
+flights_reported,1
+flights_success,0
+execution_failures,1
+collision_events,0
+collision_flights,0
+safety_violation_events,0
+simulator_failure_count,1
+simulator_failure_threshold,3
+validation_result,PASS
+
+flight_id,departure,arrival,execution_status,step,departure_utc,last_update_utc,real_duration,planned_arrival_utc,planned_duration,latitude_deg,longitude_deg,altitude_m,speed_kt,speed_ms,fuel_total_kg,fuel_used_kg,fuel_remaining_kg
+345678,STN,FCO,OUT OF FUEL,195,01/01 00:00:00,01/01 00:03:15,00h 03m 15s,01/01 00:00:00,00h 00m 00s,51.920000,0.320000,4456.32,409.09,210.45,145751.83,145751.83,0.00

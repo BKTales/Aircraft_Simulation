@@ -1,0 +1,41 @@
+@startuml US106_DedicatedThreads
+title US106 — Threads dedicadas no processo pai
+
+participant "Main thread" as MAIN
+participant "Environment thread\n(US110)" as ENV
+participant "Safety thread\n(US106/102)" as SAF
+participant "Report thread\n(US106/107/109)" as REP
+database "Shared Memory\n(US105)" as SHM
+
+== Startup ==
+MAIN -> SAF : pthread_create
+MAIN -> REP : pthread_create
+MAIN -> ENV : pthread_create
+
+== Per simulation step ==
+MAIN -> ENV : sim_environment_before_publish()\nenv_pending
+ENV -> SHM : write global.environment
+ENV --> MAIN : env_done
+
+MAIN -> SHM : sim_step_publish()\nsem_post → children
+MAIN -> SHM : sim_step_collect()\nsem_wait ← children
+
+MAIN -> SAF : sim_dedicated_threads_after_collect()\nstep_pending
+SAF -> SHM : read slots, check_collisions_detect()
+opt violation
+  SAF -> SAF : SIGUSR1 → children
+  SAF -> REP : violation_cond signal
+  REP -> REP : sim_record_violation_batch()
+end
+SAF --> MAIN : step_scan_done
+
+MAIN -> MAIN : check_flight_status()
+
+== Shutdown ==
+MAIN -> SAF : sim_done broadcast
+MAIN -> REP : sim_done broadcast
+MAIN -> ENV : sim_done broadcast
+MAIN -> MAIN : pthread_join all
+MAIN -> MAIN : handle_report_output()
+
+@enduml

@@ -1,0 +1,108 @@
+@startuml US074_DeactivateRoute
+skinparam shadowing false
+skinparam sequenceMessageAlign center
+skinparam responseMessageBelowArrow true
+skinparam roundcorner 5
+skinparam sequenceArrowThickness 1.5
+skinparam maxMessageSize 220
+
+title US074 - Deactivate Route
+
+actor "Air Transport Company Collaborator" as ATCC
+participant "DeactivateRouteUI" as UI <<UI>>
+participant "DeactivateRouteController" as CTRL <<Controller>>
+participant "CompanyRouteCollaboratorSession" as SESSION <<Helper>>
+participant "DeactivateRouteService" as SVC <<Service>>
+database "CompanyCollaboratorUserRepository" as COLLAB_REPO <<Repository>>
+database "RouteRepository" as ROUTE_REPO <<Repository>>
+database "FlightRepository" as FLIGHT_REPO <<Repository>>
+participant "RouteName" as ROUTE_NAME <<ValueObject>>
+participant "DeactivationDate" as DEACT_DATE <<ValueObject>>
+participant "Route" as ROUTE <<Aggregate>>
+
+ATCC -> UI : selects "Routes > Deactivate Route (US074)"
+activate UI
+
+UI -> CTRL : listActiveRoutes()
+activate CTRL
+CTRL -> SESSION : requireAirTransportCompanyCollaborator(authz, collaborators)
+activate SESSION
+SESSION -> COLLAB_REPO : findByUsername(username)
+activate COLLAB_REPO
+COLLAB_REPO --> SESSION : collaborator
+deactivate COLLAB_REPO
+SESSION --> CTRL : collaborator (with owner company)
+deactivate SESSION
+
+CTRL -> SVC : findActiveRoutesByCompany(company)
+activate SVC
+SVC -> ROUTE_REPO : findByCompanyIATACode(companyIata)
+activate ROUTE_REPO
+ROUTE_REPO --> SVC : routes
+deactivate ROUTE_REPO
+SVC --> CTRL : active routes (deactivationDate == null)
+deactivate SVC
+CTRL --> UI : route list
+deactivate CTRL
+
+UI --> ATCC : shows active routes
+ATCC -> UI : selects route and deactivation date
+
+UI -> CTRL : deactivateRoute(routeName, deactivationDate)
+activate CTRL
+CTRL -> SESSION : requireAirTransportCompanyCollaborator(...)
+activate SESSION
+SESSION --> CTRL : collaborator company
+deactivate SESSION
+CTRL -> SVC : deactivateRoute(routeName, date, company)
+activate SVC
+
+SVC -> ROUTE_NAME : valueOf(routeName)
+activate ROUTE_NAME
+ROUTE_NAME --> SVC : RouteName
+deactivate ROUTE_NAME
+SVC -> ROUTE_REPO : ofIdentity(routeName)
+activate ROUTE_REPO
+ROUTE_REPO --> SVC : route Optional
+deactivate ROUTE_REPO
+
+alt route not found
+    SVC --> CTRL : not found error
+else route belongs to other company
+    SVC --> CTRL : ownership error
+else route already deactivated
+    SVC --> CTRL : RouteAlreadyDeactivatedException
+else deactivationDate in the past
+    SVC --> CTRL : validation error
+else valid preconditions
+    SVC -> FLIGHT_REPO : existsPlannedFlightOnRouteAfter(routeName, date)
+    activate FLIGHT_REPO
+    FLIGHT_REPO --> SVC : boolean
+    deactivate FLIGHT_REPO
+
+    alt blocking planned flights exist
+        SVC --> CTRL : RouteHasPlannedFlightsException
+    else no blocking flights
+        SVC -> DEACT_DATE : valueOf(deactivationDate)
+        activate DEACT_DATE
+        DEACT_DATE --> SVC : DeactivationDate
+        deactivate DEACT_DATE
+        SVC -> ROUTE : deactivate(deactivationDate)
+        activate ROUTE
+        ROUTE --> SVC : updated aggregate
+        deactivate ROUTE
+        SVC -> ROUTE_REPO : save(route)
+        activate ROUTE_REPO
+        ROUTE_REPO --> SVC : saved route
+        deactivate ROUTE_REPO
+        SVC --> CTRL : saved route
+    end
+end
+
+deactivate SVC
+CTRL --> UI : result or error
+deactivate CTRL
+UI --> ATCC : displays summary or error message
+deactivate UI
+
+@enduml

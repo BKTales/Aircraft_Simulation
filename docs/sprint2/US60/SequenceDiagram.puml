@@ -1,0 +1,81 @@
+@startuml US060_RegisterAirTransportCompany
+
+autonumber
+
+actor "Admin / Backoffice Operator" as OP
+
+participant "RegisterAirTransportCompanyUI" as UI <<UI>>
+participant "RegisterAirTransportCompanyController" as CTRL <<Controller>>
+participant "AirTransportCompanyService" as SVC <<Service>>
+participant "AirTransportCompanyRepository" as REPO <<Repository>>
+participant "AirTransportCompany" as ATC <<Aggregate Root>>
+participant "CompanyName" as CN <<Value Object>>
+participant "IATACode" as IATA <<Value Object>>
+participant "ICAOCode" as ICAO <<Value Object>>
+
+OP -> UI : initiates registration
+activate UI
+
+UI -> CTRL : registerCompany(name, iataCode, icaoCode)
+activate CTRL
+
+CTRL -> SVC : registerCompany(name, iataCode, icaoCode)
+activate SVC
+
+SVC -> CN** : valueOf(name)
+activate CN
+CN --> SVC : companyName
+deactivate CN
+
+SVC -> IATA** : valueOf(iataCode)
+activate IATA
+IATA --> SVC : iata
+deactivate IATA
+
+SVC -> ICAO** : valueOf(icaoCode)
+activate ICAO
+ICAO --> SVC : icao
+deactivate ICAO
+
+SVC -> REPO : existsByIataCode(iata)
+activate REPO
+REPO --> SVC : boolean
+deactivate REPO
+
+alt IATA already exists
+    SVC --> CTRL : throws IATACodeAlreadyExistsException
+    CTRL --> UI : failure
+    UI --> OP : show error "IATA code already in use"
+end
+
+SVC -> REPO : existsByIcaoCode(icao)
+activate REPO
+REPO --> SVC : boolean
+deactivate REPO
+
+alt ICAO already exists
+    SVC --> CTRL : throws ICAOCodeAlreadyExistsException
+    CTRL --> UI : failure
+    UI --> OP : show error "ICAO code already in use"
+end
+
+SVC -> ATC** : new AirTransportCompany(companyName, iata, icao)
+activate ATC
+ATC --> SVC : airTransportCompany
+deactivate ATC
+
+SVC -> REPO : save(airTransportCompany)
+activate REPO
+REPO --> SVC : airTransportCompany
+deactivate REPO
+
+SVC --> CTRL : airTransportCompany
+deactivate SVC
+
+CTRL --> UI : airTransportCompany
+deactivate CTRL
+
+UI --> OP : show success "Company registered"
+deactivate UI
+
+@enduml

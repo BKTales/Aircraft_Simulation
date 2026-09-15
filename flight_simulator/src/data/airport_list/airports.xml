@@ -1,0 +1,524 @@
+<Network id="TestSet05" description="test set 05">
+<airport_list>
+<airport id="OPO">
+<name>Francisco de Sá Carneiro Airport</name>
+<town>Porto</town>
+<country>Portugal</country>
+<location>
+<latitude>41.2481003</latitude>
+<longitude>-8.6813898</longitude>
+<altitude>69 m</altitude>
+</location>
+</airport>
+<airport id="LIS">
+<name>Humberto Delgado Airport</name>
+<town>Lisbon</town>
+<country>Portugal</country>
+<location>
+<latitude>38.7812996</latitude>
+<longitude>-9.1359196</longitude>
+<altitude>114 m</altitude>
+</location>
+</airport>
+<airport id="PDL">
+<name>Joao Paulo II Airport</name>
+<town>Ponta Delgada</town>
+<country>Portugal</country>
+<location>
+<latitude>37.7411995</latitude>
+<longitude>-25.6979008</longitude>
+<altitude>79 m</altitude>
+</location>
+</airport>
+<airport id="FNC">
+<name>Madeira Airport</name>
+<town>Funchal</town>
+<country>Portugal</country>
+<location>
+<latitude>32.6978989</latitude>
+<longitude>-16.7744999</longitude>
+<altitude>59 m</altitude>
+</location>
+</airport>
+<airport id="MAD">
+<name>Adolfo Suárez Madrid Barajas International Airport</name>
+<town>Madrid</town>
+<country>Spain</country>
+<location>
+<latitude>40.4936</latitude>
+<longitude>-3.56676</longitude>
+<altitude>610 m</altitude>
+</location>
+</airport>
+<airport id="PMI">
+<name>Palma de Mallorca Airport</name>
+<town>Palma de Mallorca</town>
+<country>Spain</country>
+<location>
+<latitude>39.5517006</latitude>
+<longitude>2.7388101</longitude>
+<altitude>7 m</altitude>
+</location>
+</airport>
+<airport id="LPA">
+<name>Gran Canaria Airport</name>
+<town>Las Palmas</town>
+<country>Spain</country>
+<location>
+<latitude>27.9319</latitude>
+<longitude>-15.3865995</longitude>
+<altitude>23 m</altitude>
+</location>
+</airport>
+<airport id="CDG">
+<name>Charles de Gaulle International Airport</name>
+<town>Paris</town>
+<country>France</country>
+<location>
+<latitude>49.0127983</latitude>
+<longitude>2.55</longitude>
+<altitude>119 m</altitude>
+</location>
+</airport>
+<airport id="FRA">
+<name>Frankfurt am Main International Airport</name>
+<town>Frankfurt am Main</town>
+<country>Germany</country>
+<location>
+<latitude>50.0264015</latitude>
+<longitude>8.5431299</longitude>
+<altitude>111 m</altitude>
+</location>
+</airport>
+<airport id="BER">
+<name>Berlin Brandenburg Airport</name>
+<town>Berlin</town>
+<country>Germany</country>
+<location>
+<latitude>52.5166667</latitude>
+<longitude>13.4</longitude>
+<altitude>47 m</altitude>
+</location>
+</airport>
+<airport id="LHR">
+<name>London Heathrow Airport</name>
+<town>London</town>
+<country>UK</country>
+<location>
+<latitude>51.4706001</latitude>
+<longitude>-0.461941</longitude>
+<altitude>25 m</altitude>
+</location>
+</airport>
+<airport id="GLA">
+<name>Glasgow International Airport</name>
+<town>Glasgow</town>
+<country>UK</country>
+<location>
+<latitude>55.8718987</latitude>
+<longitude>-4.4330602</longitude>
+<altitude>8 m</altitude>
+</location>
+</airport>
+<airport id="SNN">
+<name>Shannon Airport</name>
+<town>Limerick</town>
+<country>Ireland</country>
+<location>
+<latitude>52.7019997</latitude>
+<longitude>-8.9248199</longitude>
+<altitude>14 m</altitude>
+</location>
+</airport>
+<airport id="KEF">
+<name>Keflavik International Airport</name>
+<town>Reykjavík</town>
+<country>Iceland </country>
+<location>
+<latitude>63.9850006</latitude>
+<longitude>-22.6056004</longitude>
+<altitude>52 m</altitude>
+</location>
+</airport>
+<airport id="TRD">
+<name>Trondheim, Vaernes Airport</name>
+<town>Trondheim</town>
+<country>Norway</country>
+<location>
+<latitude>63.4578018</latitude>
+<longitude>10.9239998</longitude>
+<altitude>17 m</altitude>
+</location>
+</airport>
+<airport id="AMS">
+<name>Amsterdam Schiphol Airport</name>
+<town>Haarlemmermeer</town>
+<country>Netherlands</country>
+<location>
+<latitude>52.3086014</latitude>
+<longitude>4.7638898</longitude>
+<altitude>-3 m</altitude>
+</location>
+</airport>
+<airport id="ZRH">
+<name>Zurich Airport</name>
+<town>Zurich</town>
+<country>Switzerland </country>
+<location>
+<latitude>47.4646988</latitude>
+<longitude>8.5491695</longitude>
+<altitude>432 m</altitude>
+</location>
+</airport>
+<airport id="MXP">
+<name>Malpensa International Airport</name>
+<town>Milano</town>
+<country>Italy</country>
+<location>
+<latitude>45.6306</latitude>
+<longitude>8.7281103</longitude>
+<altitude>234 m</altitude>
+</location>
+</airport>
+<airport id="FCO">
+<name>Leonardo Da Vinci (Fiumicino) International Airport</name>
+<town>Rome</town>
+<country>Italy</country>
+<location>
+<latitude>41.8044444</latitude>
+<longitude>12.2508333</longitude>
+<altitude>5 m</altitude>
+</location>
+</airport>
+<airport id="JFK">
+<name>John F Kennedy International Airport</name>
+<town>New York</town>
+<country>USA</country>
+<location>
+<latitude>40.639801</latitude>
+<longitude>-73.7789002</longitude>
+<altitude>4 m</altitude>
+</location>
+</airport>
+<airport id="ATL">
+<name>Hartsfield Jackson Atlanta International Airport</name>
+<town>Atlanta</town>
+<country>USA</country>
+<location>
+<latitude>33.6366997</latitude>
+<longitude>-84.4281006</longitude>
+<altitude>313 m</altitude>
+</location>
+</airport>
+<airport id="IAD">
+<name>Washington Dulles International Airport</name>
+<town>Washington DC</town>
+<country>USA</country>
+<location>
+<latitude>38.9445</latitude>
+<longitude>-77.4558029</longitude>
+<altitude>95 m</altitude>
+</location>
+</airport>
+<airport id="ORD">
+<name>Chicago O'Hare International Airport</name>
+<town>Chicago</town>
+<country>USA</country>
+<location>
+<latitude>41.9785996</latitude>
+<longitude>-87.9048004</longitude>
+<altitude>204 m</altitude>
+</location>
+</airport>
+<airport id="LAX">
+<name>Los Angeles International Airport</name>
+<town>Los Angeles</town>
+<country>USA</country>
+<location>
+<latitude>33.9425011</latitude>
+<longitude>-118.4079971</longitude>
+<altitude>38 m</altitude>
+</location>
+</airport>
+<airport id="DFW">
+<name>Dallas Fort Worth International Airport</name>
+<town>Dallas</town>
+<country>USA</country>
+<location>
+<latitude>32.896801</latitude>
+<longitude>-97.038002</longitude>
+<altitude>185 m</altitude>
+</location>
+</airport>
+<airport id="DEN">
+<name>Denver International Airport</name>
+<town>Denver</town>
+<country>USA</country>
+<location>
+<latitude>39.8616982</latitude>
+<longitude>-104.6729965</longitude>
+<altitude>1655 m</altitude>
+</location>
+</airport>
+<airport id="SFO">
+<name>San Francisco International Airport</name>
+<town>San Francisco</town>
+<country>USA</country>
+<location>
+<latitude>37.6189995</latitude>
+<longitude>-122.375</longitude>
+<altitude>3.96 m</altitude>
+</location>
+</airport>
+<airport id="LAS">
+<name>McCarran International Airport</name>
+<town>Las Vegas</town>
+<country>USA</country>
+<location>
+<latitude>36.080101</latitude>
+<longitude>-115.1520004</longitude>
+<altitude>665 m</altitude>
+</location>
+</airport>
+<airport id="MIA">
+<name>Miami International</name>
+<town>Miami</town>
+<country>USA</country>
+<location>
+<latitude>25.7931995</latitude>
+<longitude>-80.2906036</longitude>
+<altitude>3 m</altitude>
+</location>
+</airport>
+<airport id="EWR">
+<name>Newark Liberty International Airport</name>
+<town>Newark</town>
+<country>USA</country>
+<location>
+<latitude>40.6925011</latitude>
+<longitude>-74.1687012</longitude>
+<altitude>5 m</altitude>
+</location>
+</airport>
+<airport id="HNL">
+<name>Honolulu International Airport</name>
+<town>Honolulu</town>
+<country>USA</country>
+<location>
+<latitude>21.3187008</latitude>
+<longitude>-157.9219971</longitude>
+<altitude>4 m</altitude>
+</location>
+</airport>
+<airport id="BOS">
+<name>General Edward Lawrence Logan International Airport</name>
+<town>Boston</town>
+<country>USA</country>
+<location>
+<latitude>42.3642998</latitude>
+<longitude>-71.0052033</longitude>
+<altitude>6.1 m</altitude>
+</location>
+</airport>
+<airport id="MCI">
+<name>Kansas City International Airport</name>
+<town>Kansas City</town>
+<country>USA</country>
+<location>
+<latitude>39.2975998</latitude>
+<longitude>-94.7138977</longitude>
+<altitude>313 m</altitude>
+</location>
+</airport>
+<airport id="YYC">
+<name>Calgary International Airport</name>
+<town>Calgary</town>
+<country>Canada</country>
+<location>
+<latitude>51.1138992</latitude>
+<longitude>-114.0199966</longitude>
+<altitude>1099 m</altitude>
+</location>
+</airport>
+<airport id="YUL">
+<name>Montréal–Pierre Elliott Trudeau International Airport</name>
+<town>Montreal</town>
+<country>Canada</country>
+<location>
+<latitude>45.4706001</latitude>
+<longitude>-73.740799</longitude>
+<altitude>36 m</altitude>
+</location>
+</airport>
+<airport id="MEX">
+<name>Licenciado Benito Juarez International Airport</name>
+<town>Ciudad de Mexico</town>
+<country>Mexico</country>
+<location>
+<latitude>19.4363003</latitude>
+<longitude>-99.0720978</longitude>
+<altitude>2238 m</altitude>
+</location>
+</airport>
+<airport id="BOG">
+<name>El Dorado International Airport</name>
+<town>Bogota</town>
+<country>Colombia</country>
+<location>
+<latitude>4.70159</latitude>
+<longitude>-74.1469</longitude>
+<altitude>2548 m</altitude>
+</location>
+</airport>
+<airport id="CIG">
+<name>Rio de Janeiro – Antonio Carlos Jobim International Airport</name>
+<town>Rio de Janeiro</town>
+<country>Brazil</country>
+<location>
+<latitude>-22.8099995</latitude>
+<longitude>-43.2505569</longitude>
+<altitude>9 m</altitude>
+</location>
+</airport>
+<airport id="REC">
+<name>Guararapes - Gilberto Freyre International Airport</name>
+<town>Recife</town>
+<country>Brazil</country>
+<location>
+<latitude>-8.1264896</latitude>
+<longitude>-34.9235992</longitude>
+<altitude>10 m</altitude>
+</location>
+</airport>
+<airport id="SVO">
+<name>Sheremetyevo International Airport</name>
+<town>Moscow</town>
+<country>Russia</country>
+<location>
+<latitude>55.972599</latitude>
+<longitude>37.4146004</longitude>
+<altitude>192 m</altitude>
+</location>
+</airport>
+<airport id="ALA">
+<name>Almaty International Airport</name>
+<town>Alamaty</town>
+<country>Kazakhstan</country>
+<location>
+<latitude>43.3521004</latitude>
+<longitude>77.0404968</longitude>
+<altitude>681 m</altitude>
+</location>
+</airport>
+<airport id="JNB">
+<name>OR Tambo International Airport</name>
+<town>Johannesburg</town>
+<country>South Africa</country>
+<location>
+<latitude>-26.1392002</latitude>
+<longitude>28.2460003</longitude>
+<altitude>1694 m</altitude>
+</location>
+</airport>
+<airport id="FIH">
+<name>Ndjili International Airport</name>
+<town>Kinshasa</town>
+<country>Democratic Republic of the Congo</country>
+<location>
+<latitude>-4.3857498</latitude>
+<longitude>15.4446001</longitude>
+<altitude>313 m</altitude>
+</location>
+</airport>
+<airport id="MPM">
+<name>Maputo International Airport</name>
+<town>Maputo</town>
+<country>Mozambique</country>
+<location>
+<latitude>-25.9207993</latitude>
+<longitude>32.5726013</longitude>
+<altitude>44 m</altitude>
+</location>
+</airport>
+<airport id="HND">
+<name>Tokyo International Airport</name>
+<town>Tokyo</town>
+<country>Japan</country>
+<location>
+<latitude>35.5522995</latitude>
+<longitude>139.7799988</longitude>
+<altitude>6 m</altitude>
+</location>
+</airport>
+<airport id="HKG">
+<name>Hong Kong International Airport</name>
+<town>Hong Kong</town>
+<country>Hong Kong</country>
+<location>
+<latitude>22.308321</latitude>
+<longitude>113.919649</longitude>
+<altitude>9 m</altitude>
+</location>
+</airport>
+<airport id="PEK">
+<name>Beijing Capital International Airport</name>
+<town>Beijing</town>
+<country>China</country>
+<location>
+<latitude>40.080101</latitude>
+<longitude>116.5849991</longitude>
+<altitude>35 m</altitude>
+</location>
+</airport>
+<airport id="CTU">
+<name>Chengdu Shuangliu International Airport</name>
+<town>Chengdu</town>
+<country>China</country>
+<location>
+<latitude>30.5785007</latitude>
+<longitude>103.9469986</longitude>
+<altitude>495 m</altitude>
+</location>
+</airport>
+<airport id="LXA">
+<name>Lhasa Gonggar Airport</name>
+<town>Lhasa</town>
+<country>China</country>
+<location>
+<latitude>29.2978001</latitude>
+<longitude>90.9119034</longitude>
+<altitude>3570 m</altitude>
+</location>
+</airport>
+<airport id="SIN">
+<name>Singapore Changi International Airport</name>
+<town>Singapore</town>
+<country>Singapore</country>
+<location>
+<latitude>1.35019</latitude>
+<longitude>103.9940033</longitude>
+<altitude>7 m</altitude>
+</location>
+</airport>
+<airport id="SYD">
+<name>Sydney Kingsford Smith International Airport</name>
+<town>Sydney</town>
+<country>Australia</country>
+<location>
+<latitude>-33.9460983</latitude>
+<longitude>151.177002</longitude>
+<altitude>6 m</altitude>
+</location>
+</airport>
+<airport id="ASP">
+<name>Alice Springs Airport</name>
+<town>Alice Springs</town>
+<country>Australia</country>
+<location>
+<latitude>-23.8066998</latitude>
+<longitude>133.9019928</longitude>
+<altitude>545 m</altitude>
+</location>
+</airport>
+</airport_list>
+</Network>

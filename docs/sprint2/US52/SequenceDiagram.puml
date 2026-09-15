@@ -1,0 +1,99 @@
+@startuml US052_RegisterAirport
+
+autonumber
+
+actor "Backoffice Operator" as BO
+
+participant "CreateAirportUI" as UI <<UI>>
+participant "CreateAirportController" as CTRL <<Controller>>
+participant "AirportService" as SVC <<Service>>
+participant "AirControlAreaRepository" as AREAREPO <<Repository>>
+participant "AirportRepository" as REPO <<Repository>>
+participant "Airport" as AIRPORT <<Aggregate Root>>
+participant "AirportIATACode" as IATA <<Value Object>>
+participant "AirportICAOCode" as ICAO <<Value Object>>
+participant "Coordinates" as COORDS <<Value Object>>
+
+BO -> UI : initiates airport registration
+activate UI
+
+UI -> CTRL : createAirport(iataCode, icaoCode,\n  latitude, longitude, elevationMeters)
+activate CTRL
+
+CTRL -> SVC : registerAirport(iataCode, icaoCode,\n  latitude, longitude, elevationMeters)
+activate SVC
+
+note right of SVC
+  findContainingArea(lat, lon):
+  AREAREPO.findAll(), pick area whose
+  boundary contains the point
+end note
+
+SVC -> AREAREPO : findAll()
+activate AREAREPO
+AREAREPO --> SVC : areas
+deactivate AREAREPO
+
+alt no area contains coordinates
+    SVC --> CTRL : throws NoAreaFoundForCoordinatesException
+    CTRL --> UI : failure
+    UI --> BO : show error (no area for coordinates)
+end
+
+SVC -> IATA** : valueOf(iataCode)
+activate IATA
+IATA --> SVC : iata
+deactivate IATA
+
+SVC -> ICAO** : valueOf(icaoCode)
+activate ICAO
+ICAO --> SVC : icao
+deactivate ICAO
+
+SVC -> COORDS** : valueOf(lat, lon, elevationMeters)
+activate COORDS
+COORDS --> SVC : coordinates
+deactivate COORDS
+
+SVC -> REPO : ofIdentity(iata)
+activate REPO
+REPO --> SVC : Optional<Airport>
+deactivate REPO
+
+alt IATA already exists
+    SVC --> CTRL : throws AirportIATACodeAlreadyExistsException
+    CTRL --> UI : failure
+    UI --> BO : show error "IATA already in use"
+end
+
+SVC -> REPO : findByIcaoCode(icao)
+activate REPO
+REPO --> SVC : Optional<Airport>
+deactivate REPO
+
+alt ICAO already exists
+    SVC --> CTRL : throws AirportICAOCodeAlreadyExistsException
+    CTRL --> UI : failure
+    UI --> BO : show error "ICAO already in use"
+end
+
+SVC -> AIRPORT** : new Airport(iata, icao, coordinates, areaCode)
+activate AIRPORT
+AIRPORT --> SVC : airport
+deactivate AIRPORT
+
+SVC -> REPO : save(airport)
+activate REPO
+REPO --> SVC : airport
+deactivate REPO
+
+SVC --> CTRL : airport
+deactivate SVC
+
+CTRL --> UI : airport
+deactivate CTRL
+
+UI --> BO : show success
+deactivate UI
+
+@enduml

@@ -1,0 +1,146 @@
+@startuml Simulator_Global_SD
+title AISafe Flight Simulator v2 — Global Flow (US105 SHM + US108 Semaphores)
+
+skinparam sequenceMessageAlign left
+skinparam responseMessageBelowArrow true
+
+actor "Flight Control Operator" as FCO
+participant "main()\n[parent process]" as MAIN
+participant "init_program" as INIT
+participant "Shared memory" as SHM #LightBlue
+participant "Step semaphores" as SEM #LightGreen
+participant "Simulation loop\n[parent]" as LOOP
+participant "Flight process\n[child]" as CHILD
+participant "Report files" as REPORT
+
+== Initialization ==
+
+FCO -> MAIN : start flight_simulator
+activate MAIN
+
+MAIN -> INIT : load flight plans and aircraft
+activate INIT
+INIT --> MAIN : ready
+deactivate INIT
+
+MAIN -> SHM : create shared memory\n(one region for all flights)
+activate SHM
+SHM --> MAIN : ok
+deactivate SHM
+
+MAIN -> SEM : create semaphores for this run\n(step start + step complete)
+activate SEM
+SEM --> MAIN : ok
+deactivate SEM
+
+loop each valid flight
+    MAIN -> CHILD ** : fork new flight process\n(tell child which flight slot is theirs)
+    activate CHILD
+    CHILD -> SHM : connect to shared memory
+    activate SHM
+    SHM --> CHILD : connected
+    deactivate SHM
+    note right of CHILD : waiting for parent\nto start next simulation step
+    deactivate CHILD
+end
+
+MAIN -> LOOP : begin simulation loop
+activate LOOP
+
+== Simulation Loop ==
+
+loop until all flights finished OR simulation aborted
+
+    alt no flight in the air yet — jump clock to next departure
+        LOOP -> SHM : set simulation time\nto next scheduled departure
+        activate SHM
+        deactivate SHM
+        note over SEM : semaphores not used
+
+    else normal step — all active flights move together (US108)
+
+        LOOP -> SHM : write step number,\nhow many flights move this step,\nclear "update ready" flags
+        activate SHM
+        deactivate SHM
+
+        loop once per active flight
+            LOOP -> SEM : signal: start this step
+            activate SEM
+            deactivate SEM
+        end
+
+        par [each active flight in parallel]
+            CHILD -> SEM : wait until parent starts step
+            activate CHILD
+            activate SEM
+            deactivate SEM
+            CHILD -> SHM : read step number and simulation time
+            activate SHM
+            deactivate SHM
+            CHILD -> CHILD : compute new position\n(physics / fuel / phase)
+            CHILD -> SHM : write this flight's position update;\nmark update as ready
+            activate SHM
+            deactivate SHM
+            CHILD -> SEM : signal: step finished for this flight
+            activate SEM
+            deactivate SEM
+            deactivate CHILD
+        end
+
+        loop once per active flight
+            LOOP -> SEM : wait until flight reports step done
+            activate SEM
+            deactivate SEM
+        end
+
+        LOOP -> SHM : read all flight position updates
+        activate SHM
+        deactivate SHM
+
+        LOOP -> LOOP : check collisions\nand flight status (done, fuel, etc.)
+
+        opt safety violation (US102)
+            LOOP ->> CHILD : send SIGUSR1 to involved flights
+            activate CHILD
+            CHILD -> CHILD : handle violation:\nblock other signals, log warning, unblock
+            deactivate CHILD
+        end
+
+        LOOP -> SHM : advance simulation clock\nby one time step (e.g. 30 s)
+        activate SHM
+        deactivate SHM
+
+    end
+
+end
+
+== Shutdown ==
+
+opt too many failures — abort simulation
+    LOOP ->> CHILD : terminate flight process
+end
+
+LOOP -> SEM : destroy step semaphores
+activate SEM
+deactivate SEM
+
+LOOP -> SHM : destroy shared memory
+activate SHM
+deactivate SHM
+
+deactivate LOOP
+
+loop each flight process
+    MAIN -> CHILD : wait for child to exit
+    CHILD --> MAIN : exit status
+end
+
+MAIN -> REPORT : write simulation report\n(text + CSV)
+activate REPORT
+REPORT --> MAIN : file paths
+deactivate REPORT
+
+MAIN --> FCO : simulation finished
+deactivate MAIN
+
+@enduml
